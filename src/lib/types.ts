@@ -1,8 +1,8 @@
 // Types for Open Food Facts API
-// Based on https://world.openfoodfacts.org/api/v2/product/[barcode].json
+// Based on https://world.openfoodfacts.org/api/v2/product/[barcode].json and cgi/search.pl
 
 export interface OFFProduct {
-  code: string;
+  code: string; // This is the barcode for /api/v2/product endpoint
   status: number; // 1 for found, 0 for not found
   status_verbose: string;
   product?: {
@@ -24,16 +24,20 @@ export interface OFFProduct {
 export interface OFFSearchResponse {
   count: number; // Total number of products for the query
   page: number; // Current page number
-  page_count: number; // Number of products on the current page
+  page_count: number; // Number of products on the current page (from cgi/search.pl)
   page_size: number; // Number of products per page
   products: OFFProductSummary[]; // List of products
+  skip?: number; // from cgi/search.pl
 }
 
 export interface OFFProductSummary {
-  code: string;
+  _id: string; // Barcode from cgi/search.pl results
+  code?: string; // Barcode, may be present or same as _id, or from other endpoints
   product_name?: string;
   product_name_en?: string;
+  image_url?: string; // cgi/search.pl might use image_url
   image_small_url?: string;
+  image_front_small_url?: string; // another option for images
   brands?: string;
   categories?: string;
 }
