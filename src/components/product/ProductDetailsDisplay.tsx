@@ -1,13 +1,15 @@
+
 import Image from 'next/image';
 import type { Product } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import ScoreDisplay from './ScoreDisplay';
+import { Card, CardContent, CardTitle } from '@/components/ui/card';
+import ScoreDisplay from './ScoreDisplay'; // Keep for HealthScoreLoader to use
 import IngredientsList from './IngredientsList';
-import { Package, Tag, Info } from 'lucide-react';
+import HealthScoreLoader from './HealthScoreLoader'; // Import the new component
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Package, Tag, Info, AlertCircle } from 'lucide-react';
 
 interface ProductDetailsDisplayProps {
-  product: Product;
+  product: Product; // Product type might not have healthScore/scoreExplanation initially
 }
 
 export default function ProductDetailsDisplay({ product }: ProductDetailsDisplayProps) {
@@ -49,42 +51,33 @@ export default function ProductDetailsDisplay({ product }: ProductDetailsDisplay
               </p>
             )}
 
-            {product.healthScore !== undefined && (
-              <div className="mb-6 p-4 border rounded-lg bg-secondary/50">
-                <h2 className="text-xl font-semibold mb-2 flex items-center">
-                  <Info className="w-5 h-5 mr-2 text-accent" />
-                  Health Score & Analysis
-                </h2>
-                <ScoreDisplay 
-                  score={product.healthScore} 
-                  explanation={product.scoreExplanation} 
-                />
+            {/* Health Score Section: Use HealthScoreLoader */}
+            {product.ingredients && product.name !== 'Unknown Product' ? (
+              <div className="mb-6">
+                <HealthScoreLoader productName={product.name} ingredients={product.ingredients} />
               </div>
-            )}
-             {!product.healthScore && product.ingredients && (
-                <Alert variant="default" className="mb-6">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Health Score Pending</AlertTitle>
-                    <AlertDescription>
-                        The health score for this product is currently being processed or could not be generated.
-                    </AlertDescription>
-                </Alert>
+            ) : (
+              <Alert variant="default" className="mb-6">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Health Score Information</AlertTitle>
+                <AlertDescription>
+                  Health score cannot be generated because ingredient information or product name is missing or invalid.
+                </AlertDescription>
+              </Alert>
             )}
 
-
-            {product.ingredients && (
+            {/* Ingredients Section */}
+            {product.ingredients ? (
               <div className="mb-6">
                 <h2 className="text-xl font-semibold mb-2">Ingredients</h2>
                 <IngredientsList ingredients={product.ingredients} />
               </div>
-            )}
-
-            {!product.ingredients && (
+            ) : (
                  <Alert variant="default">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Ingredients Information Missing</AlertTitle>
                     <AlertDescription>
-                        We could not find the ingredients list for this product. Health score analysis requires ingredient information.
+                        We could not find the ingredients list for this product. Detailed health analysis requires ingredient information.
                     </AlertDescription>
                 </Alert>
             )}

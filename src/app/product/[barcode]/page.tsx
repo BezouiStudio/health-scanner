@@ -1,4 +1,5 @@
-import { getProductDetailsWithScore } from '@/lib/actions';
+
+import { getProductDetails } from '@/lib/actions';
 import ProductDetailsDisplay from '@/components/product/ProductDetailsDisplay';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
@@ -12,7 +13,7 @@ interface ProductPageProps {
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const product = await getProductDetailsWithScore(params.barcode);
+  const product = await getProductDetails(params.barcode); // Changed from getProductDetailsWithScore
 
   if (!product) {
     return (
