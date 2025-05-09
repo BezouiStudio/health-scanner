@@ -19,7 +19,8 @@ export default function SearchBar() {
     if (query !== urlQuery) {
       setQuery(urlQuery);
     }
-  }, [searchParams, query]); // Added query to dependencies to compare current state with URL
+  // eslint-disable-next-line react-hooks/exhaustive-deps 
+  }, [searchParams]); // Removed `query` from dependencies to prevent resetting on type
 
   const handleSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,3 +51,4 @@ export default function SearchBar() {
     </form>
   );
 }
+
