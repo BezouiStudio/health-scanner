@@ -1,19 +1,35 @@
+
 'use client';
 
-import { useState, type FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, type FormEvent, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 
 export default function SearchBar() {
-  const [query, setQuery] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialQueryFromUrl = searchParams.get('query') || '';
+  const [query, setQuery] = useState(initialQueryFromUrl);
+
+  // Effect to update local query state if the URL query parameter changes
+  useEffect(() => {
+    const urlQuery = searchParams.get('query') || '';
+    if (query !== urlQuery) {
+      setQuery(urlQuery);
+    }
+  }, [searchParams, query]); // Added query to dependencies to compare current state with URL
 
   const handleSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (query.trim()) {
-      router.push(`/search?query=${encodeURIComponent(query.trim())}`);
+    const trimmedQuery = query.trim();
+    if (trimmedQuery) {
+      router.push(`/search?query=${encodeURIComponent(trimmedQuery)}`);
+    } else {
+      // If the search bar is cleared and submitted, navigate to /search without a query
+      // This will show the "Enter a search term" message on the search page
+      router.push('/search');
     }
   };
 

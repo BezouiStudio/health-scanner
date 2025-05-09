@@ -1,3 +1,4 @@
+
 'use server';
 
 import { generateHealthScore, type GenerateHealthScoreInput } from '@/ai/flows/generate-health-score';
@@ -7,7 +8,7 @@ const OPEN_FOOD_FACTS_API_URL = 'https://world.openfoodfacts.org/api/v2';
 
 async function fetchOpenFoodFactsProduct(barcode: string): Promise<OFFProduct | null> {
   try {
-    const response = await fetch(`${OPEN_FOOD_FACTS_API_URL}/product/${barcode}.json`);
+    const response = await fetch(`${OPEN_FOOD_FACTS_API_URL}/product/${barcode}.json`, { cache: 'no-store' });
     if (!response.ok) {
       if (response.status === 404) {
         console.log(`Product with barcode ${barcode} not found on Open Food Facts.`);
@@ -75,7 +76,7 @@ export async function getProductDetailsWithScore(barcode: string): Promise<Produ
 
 export async function searchProducts(query: string): Promise<Product[]> {
   try {
-    const response = await fetch(`${OPEN_FOOD_FACTS_API_URL}/search.json?search_terms=${encodeURIComponent(query)}&search_tag=products&json=true&page_size=20`);
+    const response = await fetch(`${OPEN_FOOD_FACTS_API_URL}/search.json?search_terms=${encodeURIComponent(query)}&search_tag=products&json=true&page_size=20`, { cache: 'no-store' });
     if (!response.ok) {
       console.error(`Open Food Facts API search error for query "${query}": ${response.status} ${response.statusText}`);
       return [];
