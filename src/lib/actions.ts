@@ -1,4 +1,3 @@
-
 'use server';
 
 import type { OFFProduct, OFFSearchResponse, Product, HealthScoreData, OFFProductSummary } from './types';
@@ -32,24 +31,48 @@ async function fetchProductFromAPI(apiUrl: string, barcode: string): Promise<OFF
   }
 }
 
+// Helper function to find localized data from product fields
+function findLocalizedData(productData: any, baseFieldName: string): string {
+  // Prioritize English version if available
+  if (productData[`${baseFieldName}_en`]) {
+    return String(productData[`${baseFieldName}_en`]);
+  }
+  // Then try the base field name (often the product's primary language entry)
+  if (productData[baseFieldName]) {
+    return String(productData[baseFieldName]);
+  }
+  // Then search for any other language version
+  for (const key in productData) {
+    if (key.startsWith(`${baseFieldName}_`) && productData[key]) {
+      return String(productData[key]); // Return the first one found
+    }
+  }
+  return ''; // Return empty string if no version is found
+}
+
 function mapOFFProductToInternalProduct(offProduct: OFFProduct): Product | null {
   if (!offProduct || !offProduct.product) {
     return null;
   }
   const productData = offProduct.product;
-  const productName = productData.product_name || productData.product_name_en || 'Unknown Product';
-  const ingredients = productData.ingredients_text_with_allergens || productData.ingredients_text || productData.ingredients_text_debug || '';
+
+  const name = (findLocalizedData(productData, 'product_name') || 'Unknown Product').trim();
+  
+  let ingredients = 
+    (findLocalizedData(productData, 'ingredients_text_with_allergens') ||
+    findLocalizedData(productData, 'ingredients_text') ||
+    (productData.ingredients_text_debug ? String(productData.ingredients_text_debug) : '')).trim();
   
   const displayImageUrl = productData.image_front_url || productData.image_url || productData.image_small_url;
 
   return {
     barcode: offProduct.code,
-    name: productName,
+    name: name, // Already includes "Unknown Product" fallback and is trimmed
     imageUrl: displayImageUrl,
-    ingredients: ingredients,
-    brands: productData.brands,
-    categories: productData.categories,
-    apiResponse: offProduct, // Store the raw API response
+    ingredients: ingredients, // Already trimmed
+    brands: productData.brands ? String(productData.brands).trim() : undefined,
+    categories: productData.categories ? String(productData.categories).trim() : undefined,
+    apiResponse: offProduct,
   };
 }
 
@@ -68,23 +91,30 @@ export async function getProductDetails(barcode: string): Promise<Product | null
     const obfProductData = await fetchProductFromAPI(OPEN_BEAUTY_FACTS_API_URL, barcode);
     if (obfProductData && obfProductData.product) {
       const obfInternalProduct = mapOFFProductToInternalProduct(obfProductData);
-      if (obfInternalProduct && obfInternalProduct.ingredients) {
-        // If OBF has ingredients, prioritize its data, especially for cosmetics.
-        // If OFF product existed but lacked ingredients, update it. Otherwise, use OBF product.
-        if (product) {
-          product.ingredients = obfInternalProduct.ingredients;
-          // Optionally update other fields if OBF's are better for cosmetics
-          product.name = obfInternalProduct.name || product.name;
+      if (obfInternalProduct) { // Check if mapping was successful
+        if (product) { // Product from OFF existed
+          // Update ingredients if OBF has them and OFF didn't, or if OBF ingredients are non-empty
+          if (obfInternalProduct.ingredients && (!product.ingredients || product.ingredients.trim() === '')) {
+            product.ingredients = obfInternalProduct.ingredients;
+          }
+          
+          // Update name if OBF provides a more specific name (not "Unknown Product"),
+          // or if the original product name was "Unknown Product"
+          if (obfInternalProduct.name !== 'Unknown Product' || product.name === 'Unknown Product') {
+            product.name = obfInternalProduct.name;
+          }
+          
+          // Update other fields if OBF might have better cosmetic-specific info
           product.imageUrl = obfInternalProduct.imageUrl || product.imageUrl;
           product.brands = obfInternalProduct.brands || product.brands;
           product.categories = obfInternalProduct.categories || product.categories;
-          product.apiResponse = obfInternalProduct.apiResponse; // Update API response to OBF's
-        } else {
+          // If ingredients were updated from OBF, consider its API response more relevant
+          if (product.ingredients === obfInternalProduct.ingredients) {
+            product.apiResponse = obfInternalProduct.apiResponse; 
+          }
+        } else { // Product from OFF didn't exist, use OBF product
           product = obfInternalProduct;
         }
-      } else if (!product && obfInternalProduct) { 
-        // If product wasn't found on OFF at all, but found on OBF (even without ingredients yet)
-        product = obfInternalProduct;
       }
     }
   }
@@ -94,11 +124,14 @@ export async function getProductDetails(barcode: string): Promise<Product | null
      return null;
   }
 
-  // Ensure ingredients is a string, even if empty
-  if (product && typeof product.ingredients === 'undefined') {
-    product.ingredients = '';
+  // Ensure ingredients is a string, even if empty, and name has a final fallback
+  if (product) {
+    product.ingredients = product.ingredients || '';
+    if (!product.name || product.name.trim() === '') {
+      product.name = 'Unknown Product';
+    }
   }
-
+  
   return product;
 }
 
@@ -124,10 +157,10 @@ export async function searchProducts(query: string): Promise<Product[]> {
     // Map search results. Detailed info (including potential OBF fallback) will be fetched in getProductDetails.
     return data.products.map((p: OFFProductSummary) => ({
       barcode: p._id, 
-      name: p.product_name || p.product_name_en || 'Unknown Product',
+      name: (p.product_name_en || p.product_name || 'Unknown Product').trim(), // Apply fallback and trim
       imageUrl: p.image_small_url || p.image_url || p.image_front_small_url,
-      brands: p.brands,
-      categories: p.categories,
+      brands: p.brands ? String(p.brands).trim() : undefined,
+      categories: p.categories ? String(p.categories).trim() : undefined,
       // Ingredients and health score will be fetched on the product page.
     }));
   } catch (error) {
@@ -135,3 +168,4 @@ export async function searchProducts(query: string): Promise<Product[]> {
     return [];
   }
 }
+
