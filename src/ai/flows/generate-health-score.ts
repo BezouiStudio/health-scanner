@@ -43,7 +43,7 @@ const generateHealthScorePrompt = ai.definePrompt({
   prompt: `You are an AI assistant specialized in determining the health and safety score of products based on their ingredients and type.
 
   Analyze the ingredients provided for the product: "{{productName}}".
-  Product Type: {{productType | default('unknown')}}
+  Product Type: {{productType}}
   Ingredients: {{{ingredients}}}
 
   Based on the ingredient list AND the product type, assign a health/safety score from 1 to 10, where 1 is very unhealthy/potentially harmful and 10 is very healthy/safe.
