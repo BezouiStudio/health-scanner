@@ -2,14 +2,14 @@
 import Image from 'next/image';
 import type { Product } from '@/lib/types';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
-import ScoreDisplay from './ScoreDisplay'; // Keep for HealthScoreLoader to use
+// ScoreDisplay is not directly used here anymore but HealthScoreLoader might use it or similar logic
 import IngredientsList from './IngredientsList';
-import HealthScoreLoader from './HealthScoreLoader'; // Import the new component
+import HealthScoreLoader from './HealthScoreLoader'; 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Package, Tag, Info, AlertCircle } from 'lucide-react';
 
 interface ProductDetailsDisplayProps {
-  product: Product; // Product type might not have healthScore/scoreExplanation initially
+  product: Product;
 }
 
 export default function ProductDetailsDisplay({ product }: ProductDetailsDisplayProps) {
@@ -51,7 +51,6 @@ export default function ProductDetailsDisplay({ product }: ProductDetailsDisplay
               </p>
             )}
 
-            {/* Health Score Section: Use HealthScoreLoader */}
             {product.ingredients && product.name !== 'Unknown Product' ? (
               <div className="mb-6">
                 <HealthScoreLoader productName={product.name} ingredients={product.ingredients} />
@@ -66,11 +65,10 @@ export default function ProductDetailsDisplay({ product }: ProductDetailsDisplay
               </Alert>
             )}
 
-            {/* Ingredients Section */}
             {product.ingredients ? (
               <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-2">Ingredients</h2>
-                <IngredientsList ingredients={product.ingredients} />
+                {/* Title "Ingredients" is now part of IngredientsList component */}
+                <IngredientsList ingredients={product.ingredients} productType={product.productType} />
               </div>
             ) : (
                  <Alert variant="default">

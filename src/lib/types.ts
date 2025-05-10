@@ -53,9 +53,17 @@ export interface Product {
   healthScore?: number;
   scoreExplanation?: string;
   apiResponse?: OFFProduct; // Store raw API response if needed for debugging or more details
+  productType?: 'food' | 'cosmetic' | 'unknown'; // Add product type
 }
 
 export interface HealthScoreData {
   healthScore: number;
   explanation?: string;
+}
+
+// Type for AI-analyzed ingredient
+export interface AnalyzedIngredient {
+  ingredientName: string;
+  category: 'beneficial' | 'neutral' | 'caution' | 'avoid' | 'unknown';
+  reasoning?: string;
 }
