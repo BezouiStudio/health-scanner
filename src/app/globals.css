@@ -101,7 +101,8 @@
     @apply border-border;
   }
   body {
-    @apply bg-gradient-to-br from-background via-secondary/50 to-background text-foreground font-sans antialiased;
+    @apply bg-gradient-to-br from-background via-secondary/20 to-accent/10 text-foreground font-sans antialiased;
+    @apply dark:bg-gradient-to-br dark:from-background dark:via-secondary/10 dark:to-accent/5;
   }
 }
 

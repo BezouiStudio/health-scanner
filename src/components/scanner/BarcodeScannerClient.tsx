@@ -274,12 +274,22 @@ export default function BarcodeScannerClient() {
         )}
       </div>
       
-      {scanFeedback && (hasCameraPermission !== null || isScanSuccessful) && (
-         <p className={`text-sm text-center -mt-2 ${hasCameraPermission === false ? 'text-destructive' : 'text-muted-foreground'}`}>
+      <div className="mt-3 text-center min-h-[2.5rem] px-2">
+        {videoActuallyVisible && scanFeedback && (scanFeedback.toLowerCase().includes("searching") || scanFeedback.toLowerCase().includes("scanner active")) && (
+          <p className="text-sm text-primary animate-pulse bg-primary/10 p-2 rounded-md shadow-sm">
+            <ScanEye className="inline-block h-4 w-4 mr-1.5 align-text-bottom" />
             {scanFeedback}
-        </p>
-       )}
-
+          </p>
+        )}
+        {/* This condition covers errors during initialization where permission status might still be null */}
+        {hasCameraPermission === null && !isScannerInitializing && scanFeedback && 
+         (scanFeedback.toLowerCase().includes('error') || scanFeedback.toLowerCase().includes('fail')) && (
+           <p className="text-sm text-destructive bg-destructive/10 p-2 rounded-md shadow-sm">
+             <AlertCircle className="inline-block h-4 w-4 mr-1.5 align-text-bottom" />
+             {scanFeedback}
+           </p>
+        )}
+      </div>
 
       <div>
         <label htmlFor="barcode-input" className="block text-sm font-medium text-foreground mb-1.5">
@@ -320,4 +330,3 @@ export default function BarcodeScannerClient() {
     </form>
   );
 }
-

@@ -51,7 +51,7 @@ export default function HomePage() {
           <Card className="shadow-xl hover:shadow-2xl transition-shadow duration-300 rounded-lg">
             <CardHeader className="items-center pt-8">
                <div className="p-4 bg-primary/10 rounded-full mb-4 shadow-sm">
-                <Image src="https://picsum.photos/120/120" alt="AI Analysis" width={40} height={40} className="rounded-full" data-ai-hint="brain circuit" />
+                <Image src="https://picsum.photos/120/120" alt="AI Analysis" width={40} height={40} className="rounded-full" data-ai-hint="AI abstract" />
               </div>
               <CardTitle className="text-2xl">AI Ingredient Analysis</CardTitle>
             </CardHeader>

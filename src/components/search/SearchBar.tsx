@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, type FormEvent, useEffect, useRef } from 'react';
@@ -150,9 +151,9 @@ export default function SearchBar() {
                   }}
                   className="flex items-center px-3 py-2.5 hover:bg-accent hover:text-accent-foreground cursor-pointer rounded-md transition-all duration-150 ease-in-out group"
                 >
-                  <div className="flex-shrink-0 w-10 h-10 mr-3 bg-muted rounded-md flex items-center justify-center overflow-hidden">
+                  <div className="flex-shrink-0 w-10 h-10 mr-3 bg-secondary/30 rounded-lg shadow-sm border border-border/30 flex items-center justify-center overflow-hidden p-1">
                     {suggestion.imageUrl ? (
-                        <Image src={suggestion.imageUrl} alt={suggestion.name.substring(0,10)} width={40} height={40} className="object-contain w-full h-full" data-ai-hint="product tiny"/>
+                        <Image src={suggestion.imageUrl} alt={suggestion.name.substring(0,10)} width={38} height={38} className="object-contain w-full h-full rounded" data-ai-hint="product tiny"/>
                     ) : (
                         <Package className="w-5 h-5 text-muted-foreground" />
                     )}
