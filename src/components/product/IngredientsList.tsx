@@ -9,6 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Leaf, MinusCircle, AlertTriangle, ShieldAlert, HelpCircle, Sparkles, AlertCircle } from 'lucide-react';
 import { analyzeIngredients, type AnalyzeIngredientsInput, type AnalyzeIngredientsOutput } from '@/ai/flows/analyze-ingredients-flow';
 import type { AnalyzedIngredient } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 interface IngredientsListProps {
   ingredients: string;
@@ -103,7 +104,7 @@ export default function IngredientsList({ ingredients, productType = 'unknown' }
 
   if (!ingredients || ingredients.trim() === "") {
     return (
-      <Card className="bg-muted/30 shadow-inner border-dashed">
+      <Card className="bg-muted/30 shadow-inner border-dashed border-border/50">
         <CardContent className="p-4">
           <p className="text-sm text-muted-foreground">
             No ingredients information available for this product.
@@ -115,7 +116,7 @@ export default function IngredientsList({ ingredients, productType = 'unknown' }
   
   if (individualIngredients.length === 0 && !isLoadingAnalysis) {
      return (
-      <Card className="bg-muted/30 shadow-inner border-dashed">
+      <Card className="bg-muted/30 shadow-inner border-dashed border-border/50">
         <CardContent className="p-4">
           <p className="text-sm text-muted-foreground">
             Ingredients information could not be parsed or is not available in a recognizable format.
@@ -144,7 +145,7 @@ export default function IngredientsList({ ingredients, productType = 'unknown' }
   
   return (
     <TooltipProvider delayDuration={100}>
-      <Card className="bg-card shadow-lg border border-border/60 rounded-xl">
+      <Card className="bg-card shadow-xl border border-border/60 rounded-xl">
         <CardHeader className="pb-3 pt-5 px-5">
           <CardTitle className="text-xl font-semibold flex items-center text-foreground">
             <Sparkles className="w-5 h-5 mr-2.5 text-primary" />
