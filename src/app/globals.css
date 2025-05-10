@@ -4,33 +4,33 @@
 
 @layer base {
   :root {
-    --background: 0 0% 96%; /* Light gray #F5F5F5 */
-    --foreground: 240 10% 3.9%; /* Default dark */
+    --background: 220 20% 97%; /* Slightly cool very light gray */
+    --foreground: 240 10% 3.9%; 
 
-    --card: 0 0% 100%; /* White */
+    --card: 0 0% 100%; 
     --card-foreground: 240 10% 3.9%;
 
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    --primary: 122 39% 49%; /* Green #4CAF50 */
-    --primary-foreground: 0 0% 100%; /* White for text on primary */
+    --primary: 122 45% 52%; /* Slightly more vibrant Green */
+    --primary-foreground: 0 0% 100%; 
 
-    --secondary: 240 4.8% 95.9%; /* Lighter gray for secondary elements */
+    --secondary: 220 15% 94%; 
     --secondary-foreground: 240 5.9% 10%;
 
-    --muted: 240 4.8% 92%; /* Muted gray */
+    --muted: 220 15% 90%; 
     --muted-foreground: 240 3.8% 46.1%;
 
-    --accent: 207 90% 54%; /* Blue #2196F3 */
-    --accent-foreground: 0 0% 100%; /* White for text on accent */
+    --accent: 207 90% 58%; /* Slightly more vibrant Blue */
+    --accent-foreground: 0 0% 100%; 
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 75% 55%; /* Slightly adjusted red */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 5.9% 88%;
-    --input: 240 5.9% 88%;
-    --ring: 207 90% 54%; /* Blue for focus rings */
+    --border: 220 10% 88%;
+    --input: 220 10% 90%; /* Matched with new muted */
+    --ring: 207 90% 58%; /* Blue for focus rings, matches accent */
 
     --radius: 0.5rem;
 
@@ -51,33 +51,33 @@
   }
 
   .dark {
-    --background: 240 6% 10%;
+    --background: 240 6% 8%; /* Darker background */
     --foreground: 0 0% 98%;
 
-    --card: 240 6% 12%;
+    --card: 240 6% 11%; /* Slightly darker card */
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 6% 10%;
+    --popover: 240 6% 8%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 122 39% 55%; /* Lighter Green for dark mode */
-    --primary-foreground: 0 0% 10%; /* Dark text on primary */
+    --primary: 122 45% 58%; /* Lighter vibrant Green for dark mode */
+    --primary-foreground: 0 0% 10%; 
 
-    --secondary: 240 5% 18%; /* Dark gray */
+    --secondary: 240 5% 15%; 
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 5% 25%;
+    --muted: 240 5% 22%;
     --muted-foreground: 0 0% 60%;
 
-    --accent: 207 90% 60%; /* Lighter Blue for dark mode */
-    --accent-foreground: 0 0% 10%; /* Dark text on accent */
+    --accent: 207 90% 62%; /* Lighter vibrant Blue for dark mode */
+    --accent-foreground: 0 0% 10%; 
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 70% 50%; /* Adjusted dark red */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 5% 20%;
+    --border: 240 5% 18%;
     --input: 240 5% 20%;
-    --ring: 207 90% 60%; /* Lighter Blue for focus rings */
+    --ring: 207 90% 62%; 
 
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -101,6 +101,27 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-gradient-to-br from-background via-secondary/50 to-background text-foreground font-sans antialiased;
+  }
+}
+
+@layer components {
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+   .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
   }
 }

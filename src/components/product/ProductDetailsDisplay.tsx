@@ -6,7 +6,7 @@ import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import IngredientsList from './IngredientsList';
 import HealthScoreLoader from './HealthScoreLoader'; 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Package, Tag, Info, AlertCircle } from 'lucide-react';
+import { Package, Tag, Info, AlertCircle, ShoppingBasket } from 'lucide-react';
 
 interface ProductDetailsDisplayProps {
   product: Product;
@@ -15,27 +15,28 @@ interface ProductDetailsDisplayProps {
 export default function ProductDetailsDisplay({ product }: ProductDetailsDisplayProps) {
   return (
     <Card className="overflow-hidden shadow-xl rounded-lg">
-      <CardContent className="p-0 md:p-6">
-        <div className="grid md:grid-cols-3 gap-6 md:gap-10 items-start">
-          <div className="md:col-span-1 bg-muted rounded-lg overflow-hidden">
+      <CardContent className="p-0 md:p-6 lg:p-8">
+        <div className="grid md:grid-cols-3 gap-6 md:gap-8 lg:gap-12 items-start">
+          <div className="md:col-span-1 bg-muted rounded-lg overflow-hidden shadow-md">
             {product.imageUrl ? (
               <Image
                 src={product.imageUrl}
                 alt={product.name}
-                width={400}
-                height={400}
-                className="object-contain w-full aspect-square"
+                width={500}
+                height={500}
+                className="object-contain w-full aspect-square transition-transform duration-300 hover:scale-105"
                 data-ai-hint="product package"
+                priority // Prioritize loading of the main product image
               />
             ) : (
-              <div className="aspect-square flex items-center justify-center bg-secondary rounded-lg">
-                <Package className="w-24 h-24 text-muted-foreground" />
+              <div className="aspect-square flex items-center justify-center bg-secondary rounded-lg p-4">
+                <ShoppingBasket className="w-24 h-24 md:w-32 md:h-32 text-muted-foreground/70" />
               </div>
             )}
           </div>
 
           <div className="md:col-span-2 p-6 md:p-0">
-            <CardTitle className="text-3xl md:text-4xl font-bold mb-2 text-primary-foreground bg-primary p-3 rounded-md shadow">
+            <CardTitle className="text-3xl md:text-4xl font-bold tracking-tight mb-3 text-primary-foreground bg-gradient-to-r from-primary to-primary/80 p-4 rounded-md shadow-lg">
               {product.name}
             </CardTitle>
             
@@ -45,9 +46,10 @@ export default function ProductDetailsDisplay({ product }: ProductDetailsDisplay
               </p>
             )}
             {product.categories && (
-              <p className="text-md text-muted-foreground mb-6 flex items-center">
-                <Tag className="w-4 h-4 mr-2 text-primary" />
-                <span className="font-semibold text-foreground">Categories:</span> {product.categories.split(',').map(c => c.trim()).join(', ')}
+              <p className="text-md text-muted-foreground mb-6 flex items-center flex-wrap">
+                <Tag className="w-4 h-4 mr-2 text-primary shrink-0" />
+                <span className="font-semibold text-foreground mr-1">Categories:</span> 
+                {product.categories.split(',').map(c => c.trim()).join(', ')}
               </p>
             )}
 
@@ -56,7 +58,7 @@ export default function ProductDetailsDisplay({ product }: ProductDetailsDisplay
                 <HealthScoreLoader productName={product.name} ingredients={product.ingredients} />
               </div>
             ) : (
-              <Alert variant="default" className="mb-6">
+              <Alert variant="default" className="mb-6 shadow-sm">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Health Score Information</AlertTitle>
                 <AlertDescription>
@@ -67,11 +69,10 @@ export default function ProductDetailsDisplay({ product }: ProductDetailsDisplay
 
             {product.ingredients ? (
               <div className="mb-6">
-                {/* Title "Ingredients" is now part of IngredientsList component */}
                 <IngredientsList ingredients={product.ingredients} productType={product.productType} />
               </div>
             ) : (
-                 <Alert variant="default">
+                 <Alert variant="default" className="shadow-sm">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>Ingredients Information Missing</AlertTitle>
                     <AlertDescription>

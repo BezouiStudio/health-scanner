@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, CheckCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Camera, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function BarcodeScannerClient() {
@@ -37,13 +37,14 @@ export default function BarcodeScannerClient() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Placeholder for a camera view - Not implemented */}
-      <div className="w-full h-48 bg-muted rounded-md flex items-center justify-center border-2 border-dashed">
-        <p className="text-muted-foreground">Camera View (Mock)</p>
+      <div className="w-full aspect-[4/3] bg-muted rounded-lg flex flex-col items-center justify-center border-2 border-dashed border-border hover:border-primary/50 transition-colors duration-300">
+        <Camera className="w-16 h-16 text-muted-foreground/50 mb-2" />
+        <p className="text-muted-foreground text-sm">Camera View (Mock)</p>
+        <p className="text-xs text-muted-foreground/80">(Live scanning not implemented)</p>
       </div>
       
       <div>
-        <label htmlFor="barcode-input" className="block text-sm font-medium text-foreground mb-1">
+        <label htmlFor="barcode-input" className="block text-sm font-medium text-foreground mb-1.5">
           Enter Barcode Manually
         </label>
         <Input
@@ -55,7 +56,7 @@ export default function BarcodeScannerClient() {
             if (error) setError(null);
           }}
           placeholder="e.g., 1234567890123"
-          className="text-lg"
+          className="text-lg py-3 h-auto"
           aria-label="Enter barcode manually"
         />
       </div>
@@ -68,7 +69,8 @@ export default function BarcodeScannerClient() {
         </Alert>
       )}
 
-      <Button type="submit" className="w-full text-lg py-3">
+      <Button type="submit" className="w-full text-lg py-3 h-auto rounded-md" size="lg">
+        <Search className="mr-2 h-5 w-5" />
         Fetch Product Details
       </Button>
     </form>

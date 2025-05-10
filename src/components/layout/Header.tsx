@@ -1,29 +1,41 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Leaf, ScanLine, Sparkles } from 'lucide-react';
+import { Leaf, ScanLine, Sparkles, Home, Search } from 'lucide-react';
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-sm">
       <div className="container flex h-16 items-center">
-        <Link href="/" className="mr-6 flex items-center space-x-2">
-          <Leaf className="h-6 w-6 text-primary" />
-          <Sparkles className="h-6 w-6 text-accent" />
-          <span className="font-bold sm:inline-block text-lg">
+        <Link href="/" className="mr-6 flex items-center space-x-2 group">
+          <Leaf className="h-7 w-7 text-primary group-hover:animate-pulse" />
+          <Sparkles className="h-7 w-7 text-accent group-hover:animate-pulse delay-150" />
+          <span className="font-bold sm:inline-block text-xl text-foreground group-hover:text-primary transition-colors">
             Health & Beauty Scanner
           </span>
         </Link>
-        <nav className="flex flex-1 items-center space-x-4">
-          <Button variant="ghost" asChild>
-            <Link href="/">Home</Link>
+        <nav className="flex flex-1 items-center space-x-1 sm:space-x-2">
+          <Button variant="ghost" asChild className="text-muted-foreground hover:text-primary hover:bg-primary/10">
+            <Link href="/">
+              <Home className="h-4 w-4 sm:mr-2" /> 
+              <span className="hidden sm:inline">Home</span>
+            </Link>
           </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/scan">Scan</Link>
+          <Button variant="ghost" asChild className="text-muted-foreground hover:text-primary hover:bg-primary/10">
+            <Link href="/scan">
+              <ScanLine className="h-4 w-4 sm:mr-2" />
+               <span className="hidden sm:inline">Scan</span>
+            </Link>
+          </Button>
+          <Button variant="ghost" asChild className="text-muted-foreground hover:text-primary hover:bg-primary/10">
+            <Link href="/search">
+              <Search className="h-4 w-4 sm:mr-2" />
+               <span className="hidden sm:inline">Search</span>
+            </Link>
           </Button>
         </nav>
         <div className="flex items-center space-x-2">
-          <Button asChild>
+          <Button asChild className="rounded-full shadow-sm hover:shadow-md transition-shadow">
             <Link href="/scan">
               <ScanLine className="mr-2 h-4 w-4" />
               Scan Product
@@ -34,4 +46,3 @@ export default function Header() {
     </header>
   );
 }
-
