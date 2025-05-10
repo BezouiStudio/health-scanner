@@ -1,13 +1,13 @@
-
 'use client';
 
 import { useState, type FormEvent, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Package } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { searchProducts } from '@/lib/actions';
+import Image from 'next/image';
 
 export default function SearchBar() {
   const router = useRouter();
@@ -42,7 +42,7 @@ export default function SearchBar() {
       setIsSuggestionsLoading(true);
       try {
         const results = await searchProducts(query);
-        setSuggestions(results);
+        setSuggestions(results.slice(0, 7)); // Limit to 7 suggestions
         if (results.length > 0) {
             setShowSuggestions(true);
         } else {
@@ -90,7 +90,12 @@ export default function SearchBar() {
   const handleSuggestionClick = (suggestion: Product) => {
     setQuery(suggestion.name);
     setShowSuggestions(false);
-    router.push(`/search?query=${encodeURIComponent(suggestion.name)}`);
+    // Navigate to product page directly if barcode exists, otherwise to search page
+    if (suggestion.barcode) {
+        router.push(`/product/${suggestion.barcode}`);
+    } else {
+        router.push(`/search?query=${encodeURIComponent(suggestion.name)}`);
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,8 +103,10 @@ export default function SearchBar() {
   };
 
   const handleInputFocus = () => {
-    if (query.length >= 2) { // Show suggestions on focus if query is already populated and long enough
+    if (query.length >= 2 && suggestions.length > 0) { 
         setShowSuggestions(true);
+    } else if (query.length >=2 && !isSuggestionsLoading) {
+        setShowSuggestions(true); // Show "no results" if applicable
     }
   };
 
@@ -112,28 +119,28 @@ export default function SearchBar() {
           onChange={handleInputChange}
           onFocus={handleInputFocus}
           placeholder="Search food or cosmetics by name or barcode..."
-          className="flex-grow text-base"
+          className="flex-grow text-base h-12 rounded-lg shadow-sm focus:shadow-md"
           aria-label="Search products"
           autoComplete="off" 
         />
-        <Button type="submit" aria-label="Submit search">
+        <Button type="submit" aria-label="Submit search" size="lg" className="h-12 rounded-lg shadow-sm hover:shadow-md">
           <Search className="h-5 w-5 mr-2" />
           Search
         </Button>
       </form>
       {showSuggestions && (
-        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-card border border-border rounded-md shadow-lg max-h-80 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card border border-border rounded-xl shadow-2xl max-h-96 overflow-y-auto p-2">
           {isSuggestionsLoading && (
             <div className="px-4 py-3 flex items-center text-muted-foreground">
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <Loader2 className="h-5 w-5 mr-3 animate-spin text-primary" />
               Loading suggestions...
             </div>
           )}
           {!isSuggestionsLoading && suggestions.length === 0 && query.length >=2 && (
-             <div className="px-4 py-3 text-sm text-muted-foreground">No suggestions found for &quot;{query}&quot;.</div>
+             <div className="px-4 py-3 text-sm text-center text-muted-foreground">No suggestions found for &quot;{query}&quot;.</div>
           )}
           {!isSuggestionsLoading && suggestions.length > 0 && (
-            <ul>
+            <ul className="space-y-1">
               {suggestions.map((suggestion) => (
                 <li
                   key={suggestion.barcode + suggestion.name} // Ensure unique key
@@ -141,10 +148,22 @@ export default function SearchBar() {
                     e.preventDefault(); 
                     handleSuggestionClick(suggestion);
                   }}
-                  className="px-4 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors text-sm"
+                  className="flex items-center px-3 py-2.5 hover:bg-accent hover:text-accent-foreground cursor-pointer rounded-md transition-all duration-150 ease-in-out group"
                 >
-                  {suggestion.name}
-                  {suggestion.brands && <span className="text-xs text-muted-foreground ml-2">({suggestion.brands})</span>}
+                  <div className="flex-shrink-0 w-10 h-10 mr-3 bg-muted rounded-md flex items-center justify-center overflow-hidden">
+                    {suggestion.imageUrl ? (
+                        <Image src={suggestion.imageUrl} alt={suggestion.name.substring(0,10)} width={40} height={40} className="object-contain w-full h-full" data-ai-hint="product tiny"/>
+                    ) : (
+                        <Package className="w-5 h-5 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="flex-grow min-w-0">
+                    <p className="text-sm font-medium text-foreground group-hover:text-accent-foreground truncate">
+                        {suggestion.name}
+                    </p>
+                    {suggestion.brands && <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/80 truncate">{suggestion.brands}</p>}
+                  </div>
+                   <Search className="w-4 h-4 ml-auto text-muted-foreground group-hover:text-accent-foreground opacity-0 group-hover:opacity-100 transition-opacity"/>
                 </li>
               ))}
             </ul>
