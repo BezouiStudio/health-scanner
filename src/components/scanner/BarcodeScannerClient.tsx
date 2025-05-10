@@ -1,4 +1,4 @@
-// TODO: Implement actual barcode scanning from video stream using a library if available
+
 'use client';
 
 import { useState, type FormEvent, useEffect, useRef } from 'react';
@@ -6,67 +6,126 @@ import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, CheckCircle, Search, VideoOff, ScanEye } from 'lucide-react';
+import { AlertCircle, CheckCircle, Search, VideoOff, ScanEye, CameraOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '../ui/skeleton';
+import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
+import type { IScannerControls } from '@zxing/library';
 
 export default function BarcodeScannerClient() {
   const [barcode, setBarcode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
+  
   const videoRef = useRef<HTMLVideoElement>(null);
+  const codeReader = useRef(new BrowserMultiFormatReader());
+  const controlsRef = useRef<IScannerControls | null>(null);
+
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
-  const [isCameraLoading, setIsCameraLoading] = useState(true);
+  const [isScannerInitializing, setIsScannerInitializing] = useState(true);
+  const [scanFeedback, setScanFeedback] = useState<string | null>('Initializing scanner...');
+  const [isScanSuccessful, setIsScanSuccessful] = useState(false);
+
 
   useEffect(() => {
-    const getCameraPermission = async () => {
-      setIsCameraLoading(true);
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        console.warn('getUserMedia is not supported in this browser.');
-        setHasCameraPermission(false);
-        setIsCameraLoading(false);
-        toast({
-          variant: 'destructive',
-          title: 'Camera Not Supported',
-          description: 'Your browser does not support camera access. Please enter the barcode manually.',
-        });
-        return;
-      }
+    let streamTracksToStop: MediaStreamTrack[] = [];
+
+    const startScanning = async () => {
+      setIsScannerInitializing(true);
+      setIsScanSuccessful(false);
+      setScanFeedback("Requesting camera permission...");
 
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        setHasCameraPermission(true);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.onloadedmetadata = () => {
-            setIsCameraLoading(false);
-          };
-        } else {
-           setIsCameraLoading(false);
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error("Camera API not supported in this browser.");
         }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
+
+        if (!videoRef.current) {
+          // This case should ideally not happen if component renders correctly
+          throw new Error("Video element not ready.");
+        }
+        
+        // decodeContinuously will handle stream acquisition.
+        // We set hasCameraPermission true optimistically, actual status confirmed by try/catch.
+        setHasCameraPermission(true); 
+        setIsScannerInitializing(false); 
+        setScanFeedback("Scanner starting... Point camera at a barcode.");
+
+        const controls = await codeReader.current.decodeContinuously(
+          videoRef.current,
+          (result, error) => {
+            if (isScanSuccessful) return; // Don't process if already scanned
+
+            if (result) {
+              const scannedBarcode = result.getText();
+              if (barcode !== scannedBarcode) { // Avoid re-processing same scan immediately
+                setBarcode(scannedBarcode);
+                setScanFeedback(`Scanned: ${scannedBarcode}`);
+                setIsScanSuccessful(true);
+                toast({
+                  title: 'Barcode Scanned!',
+                  description: `Detected: ${scannedBarcode}`,
+                  action: <CheckCircle className="text-green-500" />,
+                });
+                
+                if (controlsRef.current) {
+                  controlsRef.current.stop();
+                }
+                codeReader.current.reset(); 
+                if (videoRef.current && videoRef.current.srcObject) {
+                    const stream = videoRef.current.srcObject as MediaStream;
+                    stream.getTracks().forEach(track => track.stop());
+                    videoRef.current.srcObject = null;
+                }
+              }
+            } else if (error && !(error instanceof NotFoundException)) {
+              console.error('Barcode scan error:', error);
+              // Potentially update scanFeedback for non-NotFound errors if they persist
+            } else if (error instanceof NotFoundException) {
+              if (!isScanSuccessful && videoRef.current?.srcObject) {
+                   setScanFeedback("Searching for barcode...");
+              }
+            }
+          }
+        );
+        controlsRef.current = controls;
+        if (videoRef.current && videoRef.current.srcObject) {
+           const stream = videoRef.current.srcObject as MediaStream;
+           streamTracksToStop = stream.getTracks();
+        }
+
+      } catch (err: any) {
+        console.error("Error initializing scanner:", err);
+        let message = "Failed to initialize camera.";
+        if (err.name === 'NotAllowedError') {
+          message = "Camera permission denied. Please enable it in your browser settings.";
+        } else if (err.message === "Camera API not supported in this browser.") {
+          message = err.message;
+        } else if (err.message && (err.message.includes("Requested device not found") || err.message.includes("Could notgetUserMedia")) ) {
+          message = "No camera found or camera is busy. Please ensure a camera is connected, enabled, and not in use by another application.";
+        }
+        setScanFeedback(message);
+        setIsScannerInitializing(false);
         setHasCameraPermission(false);
-        setIsCameraLoading(false);
-        toast({
-          variant: 'destructive',
-          title: 'Camera Access Denied',
-          description: 'Please enable camera permissions in your browser settings to use the scanner, or enter the barcode manually.',
-        });
+        toast({ variant: 'destructive', title: 'Camera Error', description: message });
       }
     };
 
-    getCameraPermission();
+    startScanning();
 
     return () => {
-      // Cleanup: stop camera stream when component unmounts
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
+      if (controlsRef.current) {
+        controlsRef.current.stop();
+      }
+      codeReader.current.reset();
+      streamTracksToStop.forEach(track => track.stop());
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
       }
     };
-  }, [toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -88,54 +147,56 @@ export default function BarcodeScannerClient() {
     router.push(`/product/${barcode.trim()}`);
   };
 
+  const videoVisible = !isScannerInitializing && hasCameraPermission && videoRef.current?.srcObject && !isScanSuccessful;
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="w-full aspect-video bg-muted rounded-lg flex flex-col items-center justify-center border-2 border-dashed border-border relative overflow-hidden shadow-inner">
-        {isCameraLoading && hasCameraPermission !== false && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 z-10">
+        {isScannerInitializing && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 z-10 p-4 text-center">
             <ScanEye className="w-16 h-16 text-primary animate-pulse mb-3" />
-            <p className="text-muted-foreground">Starting camera...</p>
+            <p className="text-muted-foreground">{scanFeedback || 'Initializing scanner...'}</p>
             <Skeleton className="w-full h-full absolute" />
           </div>
         )}
         <video 
           ref={videoRef} 
-          className={`w-full h-full object-cover rounded-md ${isCameraLoading || hasCameraPermission === false ? 'hidden' : ''}`} 
+          className={`w-full h-full object-cover rounded-md ${videoVisible ? '' : 'hidden'}`} 
           autoPlay 
           muted 
           playsInline
           aria-label="Camera feed for barcode scanning"
          />
-        {hasCameraPermission === false && !isCameraLoading && (
+        {!isScannerInitializing && !hasCameraPermission && (
            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
-            <VideoOff className="w-16 h-16 text-destructive mb-3" />
-            <p className="text-destructive font-semibold">Camera Inactive</p>
-            <p className="text-muted-foreground text-sm">
-              Camera access is denied or unavailable. Please use manual input.
+            <CameraOff className="w-16 h-16 text-destructive mb-3" />
+            <p className="text-destructive font-semibold">Camera Unavailable</p>
+            <p className="text-muted-foreground text-sm max-w-xs">
+              {scanFeedback || "Could not access camera. Please check permissions or use manual input."}
             </p>
           </div>
         )}
+         {!isScannerInitializing && hasCameraPermission && isScanSuccessful && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-background/90">
+                <CheckCircle className="w-16 h-16 text-green-500 mb-3" />
+                <p className="text-primary font-semibold">Scan Successful!</p>
+                <p className="text-muted-foreground text-sm max-w-xs">
+                    {scanFeedback || `Detected: ${barcode}`}
+                </p>
+            </div>
+        )}
       </div>
       
-      {hasCameraPermission === false && (
-        <Alert variant="destructive" className="mt-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Camera Access Required</AlertTitle>
-          <AlertDescription>
-            Camera permission was denied or is unavailable. Please enable it in your browser settings, or enter the barcode manually below.
-          </AlertDescription>
-        </Alert>
-      )}
-       {hasCameraPermission === true && !isCameraLoading && (
+      {scanFeedback && !isScannerInitializing && (hasCameraPermission || isScanSuccessful) && (
          <p className="text-sm text-muted-foreground text-center -mt-2">
-            Point your camera at a barcode. (Automatic detection is not yet implemented, please enter manually)
+            {scanFeedback}
         </p>
        )}
 
 
       <div>
         <label htmlFor="barcode-input" className="block text-sm font-medium text-foreground mb-1.5">
-          Enter Barcode Manually
+          Enter Barcode Manually or Scan
         </label>
         <Input
           id="barcode-input"
@@ -144,11 +205,12 @@ export default function BarcodeScannerClient() {
           onChange={(e) => {
             setBarcode(e.target.value);
             if (error) setError(null);
+            if (isScanSuccessful) setIsScanSuccessful(false); // Allow re-scan or manual override
           }}
           placeholder="e.g., 1234567890123"
           className="text-lg py-3 h-auto"
           aria-label="Enter barcode manually"
-          disabled={isCameraLoading && hasCameraPermission !== false}
+          disabled={isScannerInitializing && hasCameraPermission !== false}
         />
       </div>
 
@@ -164,7 +226,7 @@ export default function BarcodeScannerClient() {
         type="submit" 
         className="w-full text-lg py-3 h-auto rounded-md" 
         size="lg"
-        disabled={isCameraLoading && hasCameraPermission !== false && !barcode.trim()}
+        disabled={(isScannerInitializing && hasCameraPermission !== false && !barcode.trim()) || !barcode.trim()}
       >
         <Search className="mr-2 h-5 w-5" />
         Fetch Product Details
