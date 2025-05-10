@@ -28,6 +28,18 @@ const nextConfig: NextConfig = {
         hostname: 'static.openfoodfacts.org',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.openbeautyfacts.org',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'static.openbeautyfacts.org',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
