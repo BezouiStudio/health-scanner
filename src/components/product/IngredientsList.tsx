@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/components/ui/dialog';
-import { Leaf, MinusCircle, AlertTriangle, ShieldAlert, HelpCircle, Sparkles, AlertCircle, Info, ChevronRight, CheckCircle, Ban, Package } from 'lucide-react';
+import { Leaf, MinusCircle, AlertTriangle, ShieldAlert, HelpCircle, Sparkles, AlertCircle, Info, ChevronRight, CheckCircle, Ban, Package, Users } from 'lucide-react';
 import { analyzeIngredients, type AnalyzeIngredientsInput, type AnalyzeIngredientsOutput } from '@/ai/flows/analyze-ingredients-flow';
 import type { AnalyzedIngredient } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -174,15 +174,15 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
       case 'beneficial':
         return { 
             icon: <CheckCircle />, 
-            badgeClass: 'border-green-400/80 dark:border-green-500/70 bg-green-50 dark:bg-green-900/30 hover:bg-green-100/80 dark:hover:bg-green-800/40 focus:bg-green-100/90 dark:focus:bg-green-800/50',
-            textColorClass: 'text-green-700 dark:text-green-300',
+            badgeClass: 'border-green-500/70 bg-green-500/10 hover:bg-green-500/20 focus:bg-green-500/20',
+            textColorClass: 'text-green-600 dark:text-green-400',
             tooltipHeaderClass: 'text-green-600 dark:text-green-400',
             variant: 'outline',
         };
       case 'neutral':
         return { 
             icon: <MinusCircle />, 
-            badgeClass: 'border-slate-400/70 dark:border-slate-500/60 bg-slate-50 dark:bg-slate-800/30 hover:bg-slate-100/80 dark:hover:bg-slate-700/40 focus:bg-slate-100/90 dark:focus:bg-slate-700/50',
+            badgeClass: 'border-slate-500/60 bg-slate-500/10 hover:bg-slate-500/20 focus:bg-slate-500/20',
             textColorClass: 'text-slate-600 dark:text-slate-400',
             tooltipHeaderClass: 'text-slate-500 dark:text-slate-300',
             variant: 'outline',
@@ -190,16 +190,16 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
       case 'caution':
         return { 
             icon: <AlertTriangle />, 
-            badgeClass: 'border-amber-400/80 dark:border-amber-500/70 bg-amber-50 dark:bg-amber-900/30 hover:bg-amber-100/80 dark:hover:bg-amber-800/40 focus:bg-amber-100/90 dark:focus:bg-amber-800/50',
-            textColorClass: 'text-amber-700 dark:text-amber-400',
+            badgeClass: 'border-amber-500/70 bg-amber-500/10 hover:bg-amber-500/20 focus:bg-amber-500/20',
+            textColorClass: 'text-amber-600 dark:text-amber-400',
             tooltipHeaderClass: 'text-amber-600 dark:text-amber-300',
             variant: 'outline', 
         };
       case 'avoid':
         return { 
             icon: <Ban />, 
-            badgeClass: 'border-red-400/80 dark:border-red-500/70 bg-red-50 dark:bg-red-900/30 hover:bg-red-100/80 dark:hover:bg-red-800/40 focus:bg-red-100/90 dark:focus:bg-red-800/50',
-            textColorClass: 'text-red-700 dark:text-red-400',
+            badgeClass: 'border-red-500/70 bg-red-500/10 hover:bg-red-500/20 focus:bg-red-500/20',
+            textColorClass: 'text-red-600 dark:text-red-400',
             tooltipHeaderClass: 'text-red-600 dark:text-red-300',
             variant: 'outline',
         };
@@ -207,7 +207,7 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
       default:
         return { 
             icon: <HelpCircle />, 
-            badgeClass: 'border-gray-400/70 dark:border-gray-500/60 bg-gray-50 dark:bg-gray-800/30 hover:bg-gray-100/80 dark:hover:bg-gray-700/40 focus:bg-gray-100/90 dark:focus:bg-gray-700/50',
+            badgeClass: 'border-gray-500/60 bg-gray-500/10 hover:bg-gray-500/20 focus:bg-gray-500/20',
             textColorClass: 'text-gray-600 dark:text-gray-400',
             tooltipHeaderClass: 'text-gray-500 dark:text-gray-300',
             variant: 'outline',
@@ -217,17 +217,17 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
   
   return (
     <TooltipProvider delayDuration={isMobile ? 50 : 150}>
-      <Card className="bg-card shadow-xl border border-border/50 rounded-2xl overflow-hidden">
-        <CardHeader className="pb-5 pt-7 px-5 sm:px-7 bg-gradient-to-br from-primary/5 via-background to-background border-b border-border/40">
+      <Card className="bg-card shadow-xl border border-border/40 rounded-2xl overflow-hidden transform transition-all duration-300 hover:shadow-2xl">
+        <CardHeader className="pb-5 pt-7 px-6 sm:px-7 bg-gradient-to-br from-primary/5 via-card to-card border-b border-border/30">
           <CardTitle className="text-2xl md:text-3xl font-bold flex items-center text-foreground">
-            <Sparkles className="w-8 h-8 mr-3.5 text-primary animate-pulse" />
+            <Users className="w-8 h-8 mr-3.5 text-primary opacity-80" /> {/* Changed icon */}
             Ingredient Analysis
           </CardTitle>
-          <CardDescription className="text-base text-muted-foreground mt-1.5">
-            {isMobile ? 'Tap' : 'Hover over'} an ingredient for AI-powered insights. Color codes indicate potential impact.
+          <CardDescription className="text-base text-muted-foreground mt-1.5 max-w-prose">
+            {isMobile ? 'Tap' : 'Hover over'} an ingredient for AI-powered insights. Color codes highlight potential impact. Analysis is context-aware for food or cosmetics.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-5 sm:p-7 bg-background">
+        <CardContent className="p-6 sm:p-7 bg-card">
           {analysisError && (
             <div className="mb-6 p-4 rounded-lg bg-destructive/10 text-destructive-foreground text-sm flex items-start shadow-sm border border-destructive/30">
               <AlertCircle className="h-5 w-5 mr-3 mt-0.5 shrink-0 text-destructive"/> 
@@ -237,14 +237,14 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
               </div>
             </div>
           )}
-          <div className="flex flex-wrap gap-2.5 sm:gap-3">
+          <div className="flex flex-wrap gap-x-2.5 sm:gap-x-3 gap-y-3 sm:gap-y-3.5"> {/* Adjusted gap */}
             {isLoadingAnalysis && individualIngredients.length > 0 &&
               Array.from({ length: Math.min(individualIngredients.length, 10) }).map((_, index) => <SkeletonBadge key={`skel-${index}`} />)
             }
             {!isLoadingAnalysis && analyzedIngredients && analyzedIngredients.map((analyzedIng, index) => {
               if (!analyzedIng) return null; 
               const visuals = getIngredientVisuals(analyzedIng.category);
-              const currentKey = `ingredient-${analyzedIng.ingredientName}-${index}`;
+              const currentKey = `ingredient-${analyzedIng.ingredientName.replace(/\s/g, '_')}-${index}`; // Sanitize name for key
               
               const baseIconElement = visuals.icon as React.ReactElement;
 
@@ -259,28 +259,23 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
                   className={cn(
                     "truncate font-medium",
                     visuals.textColorClass,
-                    "max-w-[90px] xs:max-w-[100px] sm:max-w-[120px] md:max-w-[100px] lg:max-w-[120px] xl:max-w-[140px]" // Adjusted max-widths
+                    "max-w-[90px] xs:max-w-[100px] sm:max-w-[120px] md:max-w-[100px] lg:max-w-[120px] xl:max-w-[140px]"
                 )}>
                   {analyzedIng.ingredientName}
                 </span>
               );
               
-              const badgeInnerContent = (
-                <>
-                  {keyedIcon}
-                  {keyedSpan}
-                </>
-              );
+              const badgeInnerContent = [keyedIcon, keyedSpan];
               
               const commonBadgeProps = {
                 variant: visuals.variant || 'outline' as const, 
                 className: cn(
-                  `text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-1.5 sm:py-2 shadow-sm rounded-full flex items-center transition-all hover:shadow-md border cursor-pointer focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:brightness-110 dark:hover:brightness-125 focus:brightness-110 dark:focus:brightness-125`,
+                  `text-xs sm:text-sm font-medium px-3 sm:px-3.5 py-1.5 sm:py-2 shadow-sm rounded-full flex items-center transition-all hover:shadow-md border cursor-pointer focus:ring-2 focus:ring-ring focus:ring-offset-1 hover:brightness-105 dark:hover:brightness-110 focus:brightness-105 dark:focus:brightness-110 active:scale-95`,
                    visuals.badgeClass, 
-                   visuals.textColorClass
+                   visuals.textColorClass,
+                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 ),
               };
-
 
               const tooltipIcon = React.cloneElement(visuals.icon as React.ReactElement, { 
                   className: cn('h-5 w-5 mr-1.5 shrink-0', visuals.tooltipHeaderClass)
@@ -293,7 +288,7 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
                     {analyzedIng.category}
                   </div>
                   <p className="text-xs text-popover-foreground/80 leading-relaxed">{analyzedIng.reasoning || "No specific reasoning provided by AI."}</p>
-                  {analyzedIng.ingredientName.length > 15 &&  // Show full name if truncated
+                  {analyzedIng.ingredientName.length > 15 &&
                     <p className="text-xs text-popover-foreground/70 mt-1.5 italic">Full name: {analyzedIng.ingredientName}</p>
                   }
                 </>
@@ -307,11 +302,11 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
                     <DialogTrigger asChild>
                        <Badge {...commonBadgeProps} key={currentKey}>
                         {badgeInnerContent}
-                         <ChevronRight key="chevron-icon" className={cn("h-4 w-4 ml-1 sm:ml-1.5 shrink-0 opacity-70", visuals.textColorClass)} />
+                         <ChevronRight key={`chevron-icon-${currentKey}`} className={cn("h-4 w-4 ml-auto shrink-0 opacity-70", visuals.textColorClass)} />
                       </Badge>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-md rounded-lg p-5 bg-popover shadow-2xl border-border">
-                      <DialogHeader className="mb-2">
+                    <DialogContent className="sm:max-w-md rounded-xl p-6 bg-popover shadow-2xl border-border">
+                      <DialogHeader className="mb-3">
                         <DialogTitle className={cn("text-lg flex items-center font-semibold", visuals.tooltipHeaderClass)}>
                            {React.cloneElement(visuals.icon as React.ReactElement, { className: `h-5 w-5 mr-2 shrink-0 ${visuals.tooltipHeaderClass}`})}
                            {analyzedIng.ingredientName}
@@ -334,7 +329,7 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
                       </Badge>
                     </TooltipTrigger>
                     <TooltipContent 
-                        className="max-w-xs text-sm bg-popover text-popover-foreground p-3 rounded-lg shadow-xl border border-border/50" 
+                        className="max-w-xs text-sm bg-popover text-popover-foreground p-3.5 rounded-lg shadow-xl border border-border/50" 
                         side="top" 
                         align="center"
                     >
@@ -354,7 +349,7 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
             )}
           </div>
            {!isLoadingAnalysis && !analysisError && (
-            <div className="mt-8 p-4 bg-muted/30 border border-dashed border-border/50 rounded-lg text-xs text-muted-foreground shadow-inner">
+            <div className="mt-8 p-4 bg-secondary/40 border border-dashed border-border/50 rounded-lg text-xs text-muted-foreground shadow-inner">
               <Info className="inline-block h-4 w-4 mr-1.5 text-accent align-text-bottom" />
               Ingredient analysis is AI-generated and for informational purposes. Classifications are based on general knowledge and typical product contexts. For specific health concerns or allergies, consult a professional.
             </div>
