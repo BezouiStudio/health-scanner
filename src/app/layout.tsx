@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
@@ -17,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Health Scanner',
-  description: 'Scan and search products to get AI-powered health scores based on ingredients.',
+  title: 'Health & Beauty Scanner',
+  description: 'Scan and search food & cosmetic products to get AI-powered health scores based on ingredients.',
 };
 
 export default function RootLayout({
@@ -45,3 +46,4 @@ export default function RootLayout({
     </html>
   );
 }
+

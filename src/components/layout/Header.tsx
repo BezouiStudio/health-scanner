@@ -1,6 +1,7 @@
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Leaf, ScanLine } from 'lucide-react';
+import { Leaf, ScanLine, Sparkles } from 'lucide-react';
 
 export default function Header() {
   return (
@@ -8,8 +9,9 @@ export default function Header() {
       <div className="container flex h-16 items-center">
         <Link href="/" className="mr-6 flex items-center space-x-2">
           <Leaf className="h-6 w-6 text-primary" />
+          <Sparkles className="h-6 w-6 text-accent" />
           <span className="font-bold sm:inline-block text-lg">
-            Health Scanner
+            Health & Beauty Scanner
           </span>
         </Link>
         <nav className="flex flex-1 items-center space-x-4">
@@ -32,3 +34,4 @@ export default function Header() {
     </header>
   );
 }
+

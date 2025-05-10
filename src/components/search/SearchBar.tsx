@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, type FormEvent, useEffect } from 'react';
@@ -16,11 +17,12 @@ export default function SearchBar() {
   // Effect to update local query state if the URL query parameter changes
   useEffect(() => {
     const urlQuery = searchParams.get('query') || '';
-    if (query !== urlQuery) {
-      setQuery(urlQuery);
+    if (urlQuery !== query) { // Only set if different to avoid re-render loop
+        setQuery(urlQuery);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps 
-  }, [searchParams]); // Removed `query` from dependencies to prevent resetting on type
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
 
   const handleSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -28,8 +30,6 @@ export default function SearchBar() {
     if (trimmedQuery) {
       router.push(`/search?query=${encodeURIComponent(trimmedQuery)}`);
     } else {
-      // If the search bar is cleared and submitted, navigate to /search without a query
-      // This will show the "Enter a search term" message on the search page
       router.push('/search');
     }
   };
@@ -40,7 +40,7 @@ export default function SearchBar() {
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search by product name or barcode..."
+        placeholder="Search food or cosmetics by name or barcode..."
         className="flex-grow text-base"
         aria-label="Search products"
       />
@@ -51,4 +51,5 @@ export default function SearchBar() {
     </form>
   );
 }
+
 

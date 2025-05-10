@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -23,7 +24,7 @@ export type GenerateHealthScoreInput = z.infer<typeof GenerateHealthScoreInputSc
 const GenerateHealthScoreOutputSchema = z.object({
   healthScore: z
     .number()
-    .describe('The health score of the product, from 1 (unhealthy) to 10 (very healthy).'),
+    .describe('The health score of the product, from 1 (unhealthy/potentially harmful) to 10 (very healthy/safe).'),
   explanation: z.string().optional().describe('Explanation and justification of the health score.'),
 });
 
@@ -37,16 +38,17 @@ const generateHealthScorePrompt = ai.definePrompt({
   name: 'generateHealthScorePrompt',
   input: {schema: GenerateHealthScoreInputSchema},
   output: {schema: GenerateHealthScoreOutputSchema},
-  prompt: `You are an AI assistant specialized in determining the health score of food and cosmetic products based on their ingredients.
+  prompt: `You are an AI assistant specialized in determining the health and safety score of food and cosmetic products based on their ingredients.
 
   Analyze the ingredients provided for the product: {{productName}}.
   Ingredients: {{{ingredients}}}
 
-  Based on the ingredient list, assign a health score from 1 to 10, where 1 is very unhealthy and 10 is very healthy.
-  Consider the nutritional value, presence of harmful substances, and overall impact on health.
+  Based on the ingredient list, assign a health/safety score from 1 to 10, where 1 is very unhealthy/potentially harmful and 10 is very healthy/safe.
+  For food products, consider nutritional value, presence of harmful additives, and overall impact on health.
+  For cosmetic products, consider the presence of allergens, irritants, harmful chemicals (e.g., parabens, phthalates, sulfates), endocrine disruptors, and also the presence of beneficial ingredients. Evaluate based on typical use and potential for skin absorption or inhalation.
 
   Also, determine whether you need to justify the health score. If the score requires further explanation, provide a detailed explanation of the score.
-  If the ingredients are all very healthy, there is no need to justify.
+  For very high scores (9-10) with clearly beneficial and safe ingredients, a brief justification or no justification is acceptable. For lower scores or products with controversial ingredients, a more detailed explanation is necessary.
   Output your result in JSON format.
   `,
 });
@@ -62,3 +64,4 @@ const generateHealthScoreFlow = ai.defineFlow(
     return output!;
   }
 );
+

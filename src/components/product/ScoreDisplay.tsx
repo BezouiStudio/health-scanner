@@ -1,3 +1,4 @@
+
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, AlertTriangle, XCircle, Info } from 'lucide-react';
@@ -11,19 +12,23 @@ export default function ScoreDisplay({ score, explanation }: ScoreDisplayProps) 
   let scoreVariant: 'default' | 'secondary' | 'destructive' | 'outline' = 'default';
   let scoreColorClass = '';
   let IconComponent = Info;
+  let ratingText = "Moderate";
 
   if (score >= 8) {
     scoreVariant = 'default'; // Uses primary color (green)
     IconComponent = CheckCircle;
     scoreColorClass = 'text-primary';
+    ratingText = "Good";
   } else if (score >= 4) {
     scoreVariant = 'outline'; // Neutral outline
     IconComponent = AlertTriangle;
-    scoreColorClass = 'text-yellow-600 dark:text-yellow-400'; // Custom color for medium scores, ensure these are defined or use a theme variable if possible
+    scoreColorClass = 'text-yellow-600 dark:text-yellow-400';
+    ratingText = "Moderate";
   } else {
     scoreVariant = 'destructive'; // Uses destructive color (red)
     IconComponent = XCircle;
     scoreColorClass = 'text-destructive';
+    ratingText = "Low";
   }
 
   return (
@@ -34,7 +39,7 @@ export default function ScoreDisplay({ score, explanation }: ScoreDisplayProps) 
           {score}/10
         </Badge>
         <p className={`text-xl font-semibold ${scoreColorClass}`}>
-          {score >= 8 ? "Good" : score >=4 ? "Moderate" : "Low"} Health Rating
+          {ratingText} Health/Safety Rating
         </p>
       </div>
       {explanation && (
@@ -53,3 +58,4 @@ export default function ScoreDisplay({ score, explanation }: ScoreDisplayProps) 
     </div>
   );
 }
+

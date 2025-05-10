@@ -1,7 +1,8 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ScanLine, Search, Leaf } from "lucide-react";
+import { ScanLine, Search, Leaf, Sparkles } from "lucide-react";
 import SearchBar from "@/components/search/SearchBar";
 import Image from "next/image";
 
@@ -9,12 +10,15 @@ export default function HomePage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <section className="text-center py-12 md:py-20">
-        <Leaf className="mx-auto h-16 w-16 text-primary mb-6" />
+        <div className="flex justify-center items-center gap-4 mb-6">
+          <Leaf className="mx-auto h-16 w-16 text-primary" />
+          <Sparkles className="mx-auto h-16 w-16 text-accent" />
+        </div>
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">
-          Welcome to Health Scanner
+          Welcome to Health & Beauty Scanner
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Discover the health score of your food and cosmetic products.
+          Discover the health and safety score of your food and cosmetic products.
           Simply search by name or scan a barcode to get an AI-powered analysis of ingredients.
         </p>
         <div className="max-w-xl mx-auto mb-10">
@@ -40,33 +44,33 @@ export default function HomePage() {
             </CardHeader>
             <CardContent>
               <CardDescription className="text-center">
-                Easily find products by typing their name or barcode. Or, use our scanner page to input a barcode quickly.
+                Easily find food or cosmetic products by typing their name or barcode. Or, use our scanner page to input a barcode quickly.
               </CardDescription>
             </CardContent>
           </Card>
           <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="items-center">
                <div className="p-3 bg-primary/10 rounded-full mb-3">
-                <Image src="https://picsum.photos/100/100" alt="AI Analysis" width={32} height={32} className="rounded-full" data-ai-hint="gears technology" />
+                <Image src="https://picsum.photos/100/100" alt="AI Analysis" width={32} height={32} className="rounded-full" data-ai-hint="brain circuit" />
               </div>
               <CardTitle className="text-xl">AI Ingredient Analysis</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription className="text-center">
-                Our advanced AI evaluates the product's ingredient list to provide a comprehensive health score from 1 to 10.
+                Our advanced AI evaluates the product's ingredient list to provide a comprehensive health and safety score from 1 to 10.
               </CardDescription>
             </CardContent>
           </Card>
           <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
             <CardHeader className="items-center">
                <div className="p-3 bg-primary/10 rounded-full mb-3">
-                <Leaf className="h-8 w-8 text-primary" />
+                <Sparkles className="h-8 w-8 text-accent" />
               </div>
               <CardTitle className="text-xl">Informed Choices</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription className="text-center">
-                Get clear, understandable product information and health insights to make better choices for your well-being.
+                Get clear, understandable product information and health insights to make better choices for your well-being and beauty routines.
               </CardDescription>
             </CardContent>
           </Card>
@@ -75,3 +79,4 @@ export default function HomePage() {
     </div>
   );
 }
+
