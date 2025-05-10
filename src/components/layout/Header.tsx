@@ -6,7 +6,7 @@ import { Leaf, ScanLine, Sparkles, Home, Search } from 'lucide-react';
 export default function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shadow-md">
-      <div className="container flex h-16 items-center">
+      <div className="container mx-auto flex h-16 items-center px-4">
         <Link href="/" className="mr-2 sm:mr-6 flex items-center space-x-2 group">
           <Leaf className="h-7 w-7 text-primary group-hover:animate-pulse" />
           <Sparkles className="h-7 w-7 text-accent group-hover:animate-pulse delay-150" />
