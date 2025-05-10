@@ -3,11 +3,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
-import { Leaf, MinusCircle, AlertTriangle, ShieldAlert, HelpCircle, Sparkles, AlertCircle, Info } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Leaf, MinusCircle, AlertTriangle, ShieldAlert, HelpCircle, Sparkles, AlertCircle, Info, ChevronRight } from 'lucide-react';
 import { analyzeIngredients, type AnalyzeIngredientsInput, type AnalyzeIngredientsOutput } from '@/ai/flows/analyze-ingredients-flow';
 import type { AnalyzedIngredient } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -17,25 +17,22 @@ interface IngredientsListProps {
   productType?: 'food' | 'cosmetic' | 'unknown';
 }
 
-// Helper function to strip HTML tags
+// Helper function to strip HTML tags - ensure it runs client-side or in environment with DOMParser
 function stripHtml(html: string): string {
   if (typeof window === 'undefined' || typeof document === 'undefined' || typeof DOMParser === 'undefined') {
-    // Fallback for server-side rendering or environments where DOMParser is not available
-    // This regex is a basic attempt and might not cover all edge cases.
     return html.replace(/<[^>]*>?/gm, '');
   }
   try {
     const doc = new DOMParser().parseFromString(html, 'text/html');
     return doc.body.textContent || "";
   } catch (e) {
-    // In case of parsing errors (e.g., in a very restricted environment)
     return html.replace(/<[^>]*>?/gm, '');
   }
 }
 
 
 function SkeletonBadge() {
-  return <Skeleton className="h-8 w-24 rounded-full bg-muted/50" />;
+  return <Skeleton className="h-9 w-28 rounded-lg bg-muted/60" />;
 }
 
 export default function IngredientsList({ ingredients, productType = 'unknown' }: IngredientsListProps) {
@@ -47,9 +44,11 @@ export default function IngredientsList({ ingredients, productType = 'unknown' }
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    if (typeof window !== 'undefined') {
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }
   }, []);
 
 
@@ -112,9 +111,10 @@ export default function IngredientsList({ ingredients, productType = 'unknown' }
   if (!ingredients || ingredients.trim() === "") {
     return (
       <Card className="bg-card shadow-lg border border-border/50 rounded-xl">
-        <CardContent className="p-6">
-          <p className="text-sm text-muted-foreground text-center">
-            No ingredients information provided for this product.
+        <CardContent className="p-6 text-center">
+            <Info className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
+          <p className="text-base text-muted-foreground">
+            No ingredients information provided.
           </p>        
         </CardContent>
       </Card>
@@ -124,8 +124,9 @@ export default function IngredientsList({ ingredients, productType = 'unknown' }
   if (individualIngredients.length === 0 && !isLoadingAnalysis) {
      return (
       <Card className="bg-card shadow-lg border border-border/50 rounded-xl">
-        <CardContent className="p-6">
-          <p className="text-sm text-muted-foreground text-center">
+        <CardContent className="p-6 text-center">
+          <Info className="mx-auto h-10 w-10 text-muted-foreground mb-3" />
+          <p className="text-base text-muted-foreground">
             Ingredients could not be parsed or are not available in a standard format.
           </p>
         </CardContent>
@@ -135,76 +136,59 @@ export default function IngredientsList({ ingredients, productType = 'unknown' }
 
 const getIngredientVisuals = (category: AnalyzedIngredient['category']): { 
     icon: React.ReactNode, 
-    badgeClass: string,
-    colorClass: string,
-    variant: 'default' | 'secondary' | 'destructive' | 'outline',
-    textColorClass: string,
-    borderColorClass: string,
-    tooltipHeaderClass: string,
+    badgeClass: string, // Combined background and border for simplicity
+    textColorClass: string, // For text and icon inside the badge
+    tooltipHeaderClass: string, // For tooltip/dialog header
   } => {
     switch (category) {
       case 'beneficial':
         return { 
             icon: <Leaf />, 
-            badgeClass: 'bg-green-100 dark:bg-green-900/50 border-green-400 dark:border-green-600 hover:bg-green-200 dark:hover:bg-green-800/60',
-            colorClass: 'text-green-700 dark:text-green-300',
-            variant: 'outline',
+            badgeClass: 'bg-green-500/10 border-green-500/30 hover:bg-green-500/20 dark:bg-green-500/20 dark:border-green-500/40 dark:hover:bg-green-500/30',
             textColorClass: 'text-green-700 dark:text-green-300',
-            borderColorClass: 'border-green-500/40 dark:border-green-500/60',
             tooltipHeaderClass: 'text-green-600 dark:text-green-400'
         };
       case 'neutral':
         return { 
             icon: <MinusCircle />, 
-            badgeClass: 'bg-slate-100 dark:bg-slate-700/50 border-slate-400 dark:border-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600/60',
-            colorClass: 'text-slate-700 dark:text-slate-300',
-            variant: 'outline',
+            badgeClass: 'bg-slate-500/10 border-slate-500/30 hover:bg-slate-500/20 dark:bg-slate-500/20 dark:border-slate-500/40 dark:hover:bg-slate-500/30',
             textColorClass: 'text-slate-700 dark:text-slate-300',
-            borderColorClass: 'border-slate-500/40 dark:border-slate-500/50',
             tooltipHeaderClass: 'text-slate-600 dark:text-slate-400'
         };
       case 'caution':
         return { 
             icon: <AlertTriangle />, 
-            badgeClass: 'bg-yellow-100 dark:bg-yellow-700/40 border-yellow-500 dark:border-yellow-600 hover:bg-yellow-200 dark:hover:bg-yellow-600/50',
-            colorClass: 'text-yellow-700 dark:text-yellow-400',
-            variant: 'outline',
+            badgeClass: 'bg-yellow-500/10 border-yellow-500/30 hover:bg-yellow-500/20 dark:bg-yellow-500/20 dark:border-yellow-500/40 dark:hover:bg-yellow-500/30',
             textColorClass: 'text-yellow-700 dark:text-yellow-400',
-            borderColorClass: 'border-yellow-500/40 dark:border-yellow-500/60',
             tooltipHeaderClass: 'text-yellow-600 dark:text-yellow-400'
         };
       case 'avoid':
         return { 
             icon: <ShieldAlert />, 
-            badgeClass: 'bg-red-100 dark:bg-red-900/50 border-red-500 dark:border-red-600 hover:bg-red-200 dark:hover:bg-red-800/60',
-            colorClass: 'text-red-700 dark:text-red-300',
-            variant: 'outline',
+            badgeClass: 'bg-red-500/10 border-red-500/30 hover:bg-red-500/20 dark:bg-red-500/20 dark:border-red-500/40 dark:hover:bg-red-500/30',
             textColorClass: 'text-red-700 dark:text-red-300',
-            borderColorClass: 'border-red-500/40 dark:border-red-500/60',
             tooltipHeaderClass: 'text-red-600 dark:text-red-400'
         };
       case 'unknown':
       default:
         return { 
             icon: <HelpCircle />, 
-            badgeClass: 'bg-gray-100 dark:bg-gray-700/50 border-gray-400 dark:border-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600/60',
-            colorClass: 'text-gray-700 dark:text-gray-400',
-            variant: 'outline',
+            badgeClass: 'bg-gray-500/10 border-gray-500/30 hover:bg-gray-500/20 dark:bg-gray-500/20 dark:border-gray-500/40 dark:hover:bg-gray-500/30',
             textColorClass: 'text-gray-700 dark:text-gray-400',
-            borderColorClass: 'border-gray-500/30 dark:border-gray-500/50',
             tooltipHeaderClass: 'text-gray-500 dark:text-gray-400'
         };
     }
   };
   
   return (
-    <TooltipProvider delayDuration={isMobile ? 50 : 0}>
+    <TooltipProvider delayDuration={isMobile ? 0 : 100}> {/* Allow immediate for mobile tap */}
       <Card className="bg-card shadow-xl border border-border/60 rounded-xl">
         <CardHeader className="pb-4 pt-6 px-5 sm:px-6">
           <CardTitle className="text-xl md:text-2xl font-semibold flex items-center text-foreground">
-            <Sparkles className="w-6 h-6 mr-3 text-primary animate-pulse" />
+            <Sparkles className="w-7 h-7 mr-3 text-primary" /> {/* Slightly larger icon */}
             Ingredient Analysis
           </CardTitle>
+          <CardDescription>Tap or hover over an ingredient for more details.</CardDescription>
         </CardHeader>
         <CardContent className="p-5 sm:p-6">
           {analysisError && (
@@ -212,7 +196,7 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
               <AlertCircle className="h-5 w-5 mr-2.5 shrink-0 text-destructive"/> {analysisError}
             </div>
           )}
-          <div className="flex flex-wrap gap-2.5">
+          <div className="flex flex-wrap gap-3"> {/* Increased gap */}
             {isLoadingAnalysis && individualIngredients.length > 0 &&
               individualIngredients.map((_, index) => <SkeletonBadge key={`skel-${index}`} />)
             }
@@ -220,13 +204,14 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
               if (!analyzedIng) return null; 
               const visuals = getIngredientVisuals(analyzedIng.category);
               const badgeIcon = React.cloneElement(visuals.icon as React.ReactElement, { 
-                className: cn('h-3.5 w-3.5 mr-1.5 shrink-0', visuals.colorClass)
+                className: cn('h-4 w-4 mr-2 shrink-0', visuals.textColorClass) // Increased icon margin
               });
 
               const badgeInnerContent = (
                 <>
                   {badgeIcon}
-                  <span className={cn("truncate", 
+                  <span className={cn("truncate font-medium", 
+                     visuals.textColorClass,
                     "max-w-[100px] xs:max-w-[120px] sm:max-w-[150px] md:max-w-[120px] lg:max-w-[150px] xl:max-w-[180px]" 
                   )}>
                     {analyzedIng.ingredientName}
@@ -234,29 +219,28 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
                 </>
               );
               
-              const currentKey = `${analyzedIng.ingredientName}-${index}`;
+              const currentKey = `ingredient-${analyzedIng.ingredientName}-${index}`;
               const commonBadgeProps = {
-                variant: visuals.variant,
+                variant: 'outline' as const, // Using outline and then styling with badgeClass
                 className: cn(
-                  `text-xs sm:text-sm font-medium px-2 sm:px-3 py-1 sm:py-1.5 shadow-sm rounded-full flex items-center transition-all hover:shadow-md border cursor-pointer focus:ring-2 focus:ring-ring focus:ring-offset-1`,
-                   visuals.colorClass, 
-                   visuals.badgeClass
+                  `text-sm px-3 py-2 shadow-sm rounded-lg flex items-center transition-all hover:shadow-md border cursor-pointer focus:ring-2 focus:ring-ring focus:ring-offset-1`,
+                   visuals.badgeClass // This will handle bg, border, hover bg
                 ),
               };
 
               const tooltipIcon = React.cloneElement(visuals.icon as React.ReactElement, { 
-                  className: cn('h-4 w-4 mr-1.5 shrink-0', visuals.tooltipHeaderClass)
+                  className: cn('h-5 w-5 mr-2 shrink-0', visuals.tooltipHeaderClass)
               });
 
               const tooltipOrDialogContent = (
                 <>
-                  <div className={cn("font-semibold capitalize text-base mb-1.5 flex items-center", visuals.tooltipHeaderClass)}>
+                  <div className={cn("font-semibold capitalize text-lg mb-2 flex items-center", visuals.tooltipHeaderClass)}>
                      {tooltipIcon}
                     {analyzedIng.category}
                   </div>
-                  <p className="text-xs text-muted-foreground">{analyzedIng.reasoning}</p>
-                  {analyzedIng.ingredientName.length > 25 && 
-                    <p className="text-xs text-muted-foreground mt-1 italic">Full: {analyzedIng.ingredientName}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{analyzedIng.reasoning}</p>
+                  {analyzedIng.ingredientName.length > 20 && // Show full name if truncated
+                    <p className="text-xs text-muted-foreground mt-2 italic">Full name: {analyzedIng.ingredientName}</p>
                   }
                 </>
               );
@@ -267,36 +251,36 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
                 return (
                   <Dialog key={`dialog-${currentKey}`}>
                     <DialogTrigger asChild>
-                       <Badge key={currentKey} {...commonBadgeProps}>
+                       <Badge {...commonBadgeProps} key={currentKey}>
                         {badgeInnerContent}
+                         <ChevronRight className={cn("h-4 w-4 ml-auto shrink-0 opacity-70", visuals.textColorClass)} />
                       </Badge>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
-                      <DialogHeader>
-                        <DialogTitle className={cn("capitalize flex items-center", visuals.tooltipHeaderClass)}>
-                           {React.cloneElement(visuals.icon as React.ReactElement, { className: `h-5 w-5 mr-2 shrink-0 ${visuals.tooltipHeaderClass}`})}
+                    <DialogContent className="sm:max-w-md rounded-lg">
+                      <DialogHeader className="mb-3">
+                        <DialogTitle className={cn("text-xl flex items-center", visuals.tooltipHeaderClass)}>
+                           {React.cloneElement(visuals.icon as React.ReactElement, { className: `h-6 w-6 mr-2.5 shrink-0 ${visuals.tooltipHeaderClass}`})}
                            {analyzedIng.ingredientName}
                         </DialogTitle>
                       </DialogHeader>
                       <DialogDescription asChild>
-                        <div>{tooltipOrDialogContent}</div>
+                        <div className="text-base">{tooltipOrDialogContent}</div>
                       </DialogDescription>
                     </DialogContent>
                   </Dialog>
                 );
               }
 
-
               if (hasReasoning) {
                 return (
                   <Tooltip key={`tooltip-${currentKey}`}>
                     <TooltipTrigger asChild>
-                      <Badge key={currentKey} {...commonBadgeProps} tabIndex={0}>
+                      <Badge {...commonBadgeProps} tabIndex={0} key={currentKey}>
                         {badgeInnerContent}
                       </Badge>
                     </TooltipTrigger>
                     <TooltipContent 
-                        className="max-w-xs text-sm bg-popover text-popover-foreground p-3 rounded-lg shadow-xl border border-border" 
+                        className="max-w-sm text-sm bg-popover text-popover-foreground p-4 rounded-lg shadow-xl border border-border" 
                         side="top" 
                         align="center"
                     >
@@ -306,17 +290,17 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
                 );
               }
               return (
-                <Badge key={currentKey} {...commonBadgeProps}>
+                <Badge {...commonBadgeProps} key={currentKey}>
                   {badgeInnerContent}
                 </Badge>
               );
             })}
             {!isLoadingAnalysis && analyzedIngredients?.length === 0 && individualIngredients.length > 0 && (
-                <p className="text-sm text-muted-foreground w-full">No specific analysis available for these ingredients from the AI.</p>
+                <p className="text-sm text-muted-foreground w-full p-4 bg-secondary/50 rounded-md text-center">No specific AI analysis available for these ingredients.</p>
             )}
           </div>
            {!isLoadingAnalysis && !analysisError && (
-            <div className="mt-6 p-4 bg-secondary/50 border border-dashed border-border rounded-lg text-xs text-muted-foreground">
+            <div className="mt-8 p-4 bg-secondary/40 border border-dashed border-border/60 rounded-lg text-xs text-muted-foreground">
               <Info className="inline-block h-4 w-4 mr-1.5 text-accent align-text-bottom" />
               Ingredient analysis is AI-generated and for informational purposes. Classifications are based on general knowledge and typical product contexts. For specific health concerns or allergies, consult a professional.
             </div>
@@ -326,4 +310,3 @@ const getIngredientVisuals = (category: AnalyzedIngredient['category']): {
     </TooltipProvider>
   );
 }
-

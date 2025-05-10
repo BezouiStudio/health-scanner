@@ -5,10 +5,11 @@ import { useState, type FormEvent, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Loader2, Package } from 'lucide-react';
+import { Search, Loader2, Package, ChevronRight } from 'lucide-react';
 import type { Product } from '@/lib/types';
 import { searchProducts } from '@/lib/actions';
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 export default function SearchBar() {
   const router = useRouter();
@@ -21,7 +22,6 @@ export default function SearchBar() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
-  // Effect to update local query state if the URL query parameter changes
   useEffect(() => {
     const urlQuery = searchParams.get('query') || '';
     if (urlQuery !== query) {
@@ -31,9 +31,8 @@ export default function SearchBar() {
   }, [searchParams]);
 
 
-  // Effect for fetching suggestions
   useEffect(() => {
-    if (query.length < 2) { // Minimum characters to trigger suggestions
+    if (query.length < 2) { 
       setSuggestions([]);
       setShowSuggestions(false);
       return;
@@ -43,11 +42,10 @@ export default function SearchBar() {
       setIsSuggestionsLoading(true);
       try {
         const results = await searchProducts(query);
-        setSuggestions(results.slice(0, 7)); // Limit to 7 suggestions
+        setSuggestions(results.slice(0, 7)); 
         if (results.length > 0) {
             setShowSuggestions(true);
         } else {
-            // Keep suggestions box open to show "No suggestions found" if query is long enough
             setShowSuggestions(query.length >=2);
         }
       } catch (error) {
@@ -56,14 +54,13 @@ export default function SearchBar() {
         setShowSuggestions(false);
       }
       setIsSuggestionsLoading(false);
-    }, 300); // 300ms debounce
+    }, 300); 
 
     return () => {
       clearTimeout(handler);
     };
   }, [query]);
   
-  // Effect to handle clicks outside the search bar to close suggestions
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
@@ -80,7 +77,7 @@ export default function SearchBar() {
   const handleSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const trimmedQuery = query.trim();
-    setShowSuggestions(false); // Hide suggestions on search submission
+    setShowSuggestions(false); 
     if (trimmedQuery) {
       router.push(`/search?query=${encodeURIComponent(trimmedQuery)}`);
     } else {
@@ -89,12 +86,11 @@ export default function SearchBar() {
   };
 
   const handleSuggestionClick = (suggestion: Product) => {
-    setQuery(suggestion.name);
+    setQuery(suggestion.name || '');
     setShowSuggestions(false);
-    // Navigate to product page directly if barcode exists, otherwise to search page
     if (suggestion.barcode) {
         router.push(`/product/${suggestion.barcode}`);
-    } else {
+    } else if (suggestion.name) {
         router.push(`/search?query=${encodeURIComponent(suggestion.name)}`);
     }
   };
@@ -107,64 +103,69 @@ export default function SearchBar() {
     if (query.length >= 2 && suggestions.length > 0) { 
         setShowSuggestions(true);
     } else if (query.length >=2 && !isSuggestionsLoading) {
-        setShowSuggestions(true); // Show "no results" if applicable
+        setShowSuggestions(true); 
     }
   };
 
   return (
     <div className="relative w-full" ref={searchContainerRef}>
-      <form onSubmit={handleSearch} className="flex w-full items-center space-x-2">
+      <form onSubmit={handleSearch} className="flex w-full items-center space-x-2.5">
         <Input
           type="text"
           value={query}
           onChange={handleInputChange}
           onFocus={handleInputFocus}
-          placeholder="Search food or cosmetics by name or barcode..."
-          className="flex-grow text-base h-12 rounded-lg shadow-sm focus:shadow-md"
+          placeholder="Search food or cosmetics..."
+          className="flex-grow text-base h-14 rounded-xl shadow-sm focus:shadow-lg focus:ring-2 focus:ring-primary/50 px-5"
           aria-label="Search products"
           autoComplete="off" 
         />
-        <Button type="submit" aria-label="Submit search" size="lg" className="h-12 rounded-lg shadow-sm hover:shadow-md">
-          <Search className="h-5 w-5 mr-2" />
-          Search
+        <Button type="submit" aria-label="Submit search" size="lg" className="h-14 rounded-xl shadow-sm hover:shadow-lg px-6">
+          <Search className="h-5 w-5 md:mr-2" />
+          <span className="hidden md:inline">Search</span>
         </Button>
       </form>
       {showSuggestions && (
-        <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-card border border-border rounded-xl shadow-2xl max-h-96 overflow-y-auto p-2">
+        <div className="absolute top-full left-0 right-0 z-50 mt-2.5 bg-card border border-border rounded-xl shadow-2xl max-h-[60vh] overflow-y-auto p-2.5">
           {isSuggestionsLoading && (
-            <div className="px-4 py-3 flex items-center text-muted-foreground">
+            <div className="px-4 py-3.5 flex items-center text-muted-foreground text-sm">
               <Loader2 className="h-5 w-5 mr-3 animate-spin text-primary" />
               Loading suggestions...
             </div>
           )}
           {!isSuggestionsLoading && suggestions.length === 0 && query.length >=2 && (
-             <div className="px-4 py-3 text-sm text-center text-muted-foreground">No suggestions found for &quot;{query}&quot;.</div>
+             <div className="px-4 py-3.5 text-sm text-center text-muted-foreground">No suggestions found for &quot;{query}&quot;.</div>
           )}
           {!isSuggestionsLoading && suggestions.length > 0 && (
-            <ul className="space-y-1">
+            <ul className="space-y-1.5">
               {suggestions.map((suggestion) => (
                 <li
-                  key={suggestion.barcode + suggestion.name} // Ensure unique key
+                  key={(suggestion.barcode || suggestion.name) + Math.random()} 
                   onMouseDown={(e) => { 
                     e.preventDefault(); 
                     handleSuggestionClick(suggestion);
                   }}
-                  className="flex items-center px-3 py-2.5 hover:bg-accent hover:text-accent-foreground cursor-pointer rounded-md transition-all duration-150 ease-in-out group"
+                  className={cn(
+                    "flex items-center px-4 py-3 hover:bg-accent/50 dark:hover:bg-accent/20 hover:text-accent-foreground cursor-pointer rounded-lg transition-all duration-150 ease-in-out group",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:bg-accent/50 dark:focus-visible:bg-accent/20"
+                  )}
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleSuggestionClick(suggestion); }}
                 >
-                  <div className="flex-shrink-0 w-10 h-10 mr-3 bg-secondary/30 rounded-lg shadow-sm border border-border/30 flex items-center justify-center overflow-hidden p-1">
+                  <div className="flex-shrink-0 w-12 h-12 mr-4 bg-muted/60 rounded-lg shadow-sm border border-border/50 flex items-center justify-center overflow-hidden p-1">
                     {suggestion.imageUrl ? (
-                        <Image src={suggestion.imageUrl} alt={suggestion.name.substring(0,10)} width={38} height={38} className="object-contain w-full h-full rounded" data-ai-hint="product tiny"/>
+                        <Image src={suggestion.imageUrl} alt={(suggestion.name || 'Product').substring(0,10)} width={46} height={46} className="object-contain w-full h-full rounded-sm" data-ai-hint="product tiny"/>
                     ) : (
-                        <Package className="w-5 h-5 text-muted-foreground" />
+                        <Package className="w-6 h-6 text-muted-foreground/80" />
                     )}
                   </div>
                   <div className="flex-grow min-w-0">
-                    <p className="text-sm font-medium text-foreground group-hover:text-accent-foreground truncate">
-                        {suggestion.name}
+                    <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">
+                        {suggestion.name || 'Unnamed Product'}
                     </p>
-                    {suggestion.brands && <p className="text-xs text-muted-foreground group-hover:text-accent-foreground/80 truncate">{suggestion.brands}</p>}
+                    {suggestion.brands && <p className="text-xs text-muted-foreground group-hover:text-foreground/80 transition-colors truncate">{suggestion.brands}</p>}
                   </div>
-                   <Search className="w-4 h-4 ml-auto text-muted-foreground group-hover:text-accent-foreground opacity-0 group-hover:opacity-100 transition-opacity"/>
+                   <ChevronRight className="w-5 h-5 ml-auto text-muted-foreground/70 group-hover:text-primary transition-all duration-200 group-hover:translate-x-0.5 opacity-70 group-hover:opacity-100"/>
                 </li>
               ))}
             </ul>

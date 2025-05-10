@@ -1,7 +1,7 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, AlertTriangle, XCircle, Info, TrendingUp, TrendingDown, MinusCircle } from 'lucide-react';
+import { CheckCircle, AlertTriangle, XCircle, Info, TrendingUp, TrendingDown, MinusCircle, ShieldAlert, ShieldCheck, ShieldQuestion } from 'lucide-react';
 
 interface ScoreDisplayProps {
   score: number;
@@ -9,67 +9,86 @@ interface ScoreDisplayProps {
 }
 
 export default function ScoreDisplay({ score, explanation }: ScoreDisplayProps) {
-  let scoreVariant: 'default' | 'secondary' | 'destructive' | 'outline' = 'default';
   let scoreColorClass = '';
-  let IconComponent = TrendingUp; // Default to a positive trend icon
-  let ratingText = "Moderate";
-  let badgeBgColor = 'bg-primary'; // Default for 'default' variant
+  let IconComponent = ShieldQuestion;
+  let ratingText = "Rating Unavailable";
+  let badgeVariant: 'default' | 'secondary' | 'destructive' | 'outline' = 'default';
+  let badgeRingClass = '';
+  let badgeTextColorClass = 'text-primary-foreground';
 
   if (score >= 8) {
-    scoreVariant = 'default'; 
-    IconComponent = CheckCircle;
+    IconComponent = ShieldCheck;
     scoreColorClass = 'text-green-600 dark:text-green-400';
+    ratingText = "Excellent";
+    badgeVariant = 'default'; // Will use primary color by default
+    badgeRingClass = 'ring-green-500/30';
+    badgeTextColorClass = 'text-primary-foreground'; // white on primary bg
+  } else if (score >= 6) {
+    IconComponent = ShieldCheck; // Still good
+    scoreColorClass = 'text-sky-600 dark:text-sky-400'; // Using sky for "Good"
     ratingText = "Good";
-    badgeBgColor = 'bg-green-500 hover:bg-green-500/90';
+    badgeVariant = 'default'; // Using primary color, but text below will differ
+    badgeRingClass = 'ring-sky-500/30';
+    badgeTextColorClass = 'text-primary-foreground';
   } else if (score >= 4) {
-    scoreVariant = 'outline'; 
     IconComponent = AlertTriangle;
     scoreColorClass = 'text-yellow-600 dark:text-yellow-400';
-    ratingText = "Moderate";
-    // For outline, the border and text color define it.
+    ratingText = "Fair";
+    badgeVariant = 'outline'; // Outline for moderate scores
+    badgeRingClass = 'ring-yellow-500/50 border-yellow-500';
+    badgeTextColorClass = 'text-yellow-600 dark:text-yellow-400';
   } else {
-    scoreVariant = 'destructive'; 
-    IconComponent = XCircle;
+    IconComponent = ShieldAlert;
     scoreColorClass = 'text-red-600 dark:text-red-400';
-    ratingText = "Low";
-    badgeBgColor = 'bg-red-500 hover:bg-red-500/90';
+    ratingText = "Caution";
+    badgeVariant = 'destructive'; // Destructive for low scores
+    badgeRingClass = 'ring-red-500/30';
+    badgeTextColorClass = 'text-destructive-foreground'; // white on red bg
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-        <Badge 
-          variant={scoreVariant} 
-          className={`px-4 py-2 text-2xl md:text-3xl font-bold shadow-lg rounded-full flex items-center
-            ${scoreVariant === 'default' ? `${badgeBgColor} text-white` : ''}
-            ${scoreVariant === 'destructive' ? `${badgeBgColor} text-white` : ''}
-            ${scoreVariant === 'outline' ? `border-2 border-yellow-500 text-yellow-600 dark:text-yellow-400 bg-yellow-500/10` : ''}
-          `}
-        >
-          <IconComponent className={`w-7 h-7 md:w-8 md:h-8 mr-2 ${scoreVariant !== 'outline' ? 'text-white' : scoreColorClass }`} />
-          {score}/10
-        </Badge>
-        <p className={`text-xl md:text-2xl font-semibold ${scoreColorClass}`}>
-          {ratingText} Health/Safety Rating
-        </p>
+    <div className="space-y-5">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        <div className={`relative inline-flex items-center justify-center p-1.5 rounded-full ring-4 ${badgeRingClass} bg-gradient-to-br ${
+            score >= 8 ? 'from-green-400 to-green-600' :
+            score >= 6 ? 'from-sky-400 to-sky-600' :
+            score >= 4 ? 'from-yellow-400 to-yellow-600' :
+            'from-red-400 to-red-600'
+        } shadow-lg`}>
+            <div className="w-24 h-24 sm:w-28 sm:h-28 bg-card rounded-full flex flex-col items-center justify-center text-center p-2">
+                <IconComponent className={`w-7 h-7 sm:w-8 sm:h-8 mb-1 ${scoreColorClass}`} />
+                <span className={`text-3xl sm:text-4xl font-bold ${scoreColorClass}`}>{score}</span>
+                <span className={`text-xs font-medium ${scoreColorClass} uppercase tracking-wider`}>Score</span>
+            </div>
+        </div>
+        <div className="sm:ml-2">
+            <p className={`text-2xl md:text-3xl font-bold ${scoreColorClass}`}>
+            {ratingText}
+            </p>
+            <p className="text-sm text-muted-foreground">Health & Safety Rating</p>
+        </div>
       </div>
+      
       {explanation && (
-        <Card className="bg-muted/50 border-border/70 rounded-lg shadow-sm">
-          <CardHeader className="pb-2 pt-4 px-4">
-            <CardTitle className="text-md font-semibold flex items-center text-foreground/90">
-              <Info className="w-5 h-5 mr-2 text-accent" />
+        <Card className="bg-secondary/30 border-border/50 rounded-lg shadow-sm">
+          <CardHeader className="pb-2 pt-4 px-5">
+            <CardTitle className="text-lg font-semibold flex items-center text-foreground/90">
+              <Info className="w-5 h-5 mr-2 text-accent shrink-0" />
               AI Explanation
             </CardTitle>
           </CardHeader>
-          <CardContent className="px-4 pb-4">
+          <CardContent className="px-5 pb-5">
             <p className="text-sm text-muted-foreground leading-relaxed">{explanation}</p>
           </CardContent>
         </Card>
       )}
        {!explanation && (
-         <Card className="bg-muted/50 border-border/70 rounded-lg shadow-sm">
-          <CardContent className="px-4 py-4">
-            <p className="text-sm text-muted-foreground italic">No detailed explanation provided by the AI for this score.</p>
+         <Card className="bg-secondary/30 border-border/50 rounded-lg shadow-sm">
+          <CardContent className="px-5 py-5">
+            <p className="text-sm text-muted-foreground italic flex items-center">
+                <Info className="w-4 h-4 mr-2 text-muted-foreground shrink-0" />
+                No detailed explanation provided by the AI for this score.
+            </p>
           </CardContent>
         </Card>
       )}

@@ -1,9 +1,13 @@
+
 export default function Footer() {
   return (
-    <footer className="py-6 md:px-8 md:py-0 border-t">
-      <div className="container flex flex-col items-center justify-center gap-4 md:h-24 md:flex-row">
-        <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-          Built by Your Friendly AI. &copy; {new Date().getFullYear()} Health Scanner.
+    <footer className="py-8 md:py-10 border-t bg-secondary/50">
+      <div className="container mx-auto flex flex-col items-center justify-center text-center">
+        <p className="text-sm text-muted-foreground">
+          Powered by AI & Open Data. &copy; {new Date().getFullYear()} Health & Beauty Scanner.
+        </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          For informational purposes only. Consult a professional for health advice.
         </p>
       </div>
     </footer>

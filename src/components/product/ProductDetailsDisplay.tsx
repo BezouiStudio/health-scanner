@@ -1,12 +1,12 @@
 
 import Image from 'next/image';
 import type { Product } from '@/lib/types';
-import { Card, CardContent, CardTitle } from '@/components/ui/card';
-// ScoreDisplay is not directly used here anymore but HealthScoreLoader might use it or similar logic
+import { Card, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
 import IngredientsList from './IngredientsList';
 import HealthScoreLoader from './HealthScoreLoader'; 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Package, Tag, Info, AlertCircle, ShoppingBasket } from 'lucide-react';
+import { Package, Tag, Info, AlertCircle, ShoppingBasket, ListChecks, ShieldQuestion, Microscope } from 'lucide-react';
+import { Separator } from '../ui/separator';
 
 interface ProductDetailsDisplayProps {
   product: Product;
@@ -15,7 +15,7 @@ interface ProductDetailsDisplayProps {
 export default function ProductDetailsDisplay({ product }: ProductDetailsDisplayProps) {
   const isCosmetic = product.productType === 'cosmetic';
   const noScoreReason = 
-    product.name === 'Unknown Product' ? 'the product name is missing or invalid.' :
+    product.name === 'Unknown Product' || !product.name ? 'the product name is missing or invalid.' :
     !product.ingredients ? 'ingredient information is missing.' :
     'ingredient information or product name is missing or invalid.';
 
@@ -24,77 +24,131 @@ export default function ProductDetailsDisplay({ product }: ProductDetailsDisplay
     : `Health score cannot be generated because ${noScoreReason}`;
 
   return (
-    <Card className="overflow-hidden shadow-xl rounded-lg">
-      <CardContent className="p-0 md:p-6 lg:p-8">
-        <div className="grid md:grid-cols-3 gap-6 md:gap-8 lg:gap-12 items-start">
-          <div className="md:col-span-1 bg-muted rounded-lg overflow-hidden shadow-md">
-            {product.imageUrl ? (
-              <Image
-                src={product.imageUrl}
-                alt={product.name}
-                width={500}
-                height={500}
-                className="object-contain w-full aspect-square transition-transform duration-300 hover:scale-105"
-                data-ai-hint="product package"
-                priority // Prioritize loading of the main product image
-              />
-            ) : (
-              <div className="aspect-square flex items-center justify-center bg-secondary rounded-lg p-4">
-                <ShoppingBasket className="w-24 h-24 md:w-32 md:h-32 text-muted-foreground/70" />
-              </div>
-            )}
+    <div className="bg-card shadow-2xl rounded-xl overflow-hidden border border-border/60">
+      <div className="p-6 md:p-8 lg:p-10">
+        <div className="grid md:grid-cols-12 gap-8 md:gap-10 lg:gap-12 items-start">
+          
+          {/* Left Column: Image and Basic Info */}
+          <div className="md:col-span-4 lg:col-span-4 space-y-6">
+            <div className="bg-muted/50 rounded-lg overflow-hidden shadow-md aspect-square flex items-center justify-center p-2">
+              {product.imageUrl ? (
+                <Image
+                  src={product.imageUrl}
+                  alt={product.name || 'Product image'}
+                  width={600}
+                  height={600}
+                  className="object-contain w-full h-full transition-transform duration-300 hover:scale-105"
+                  data-ai-hint="product package"
+                  priority 
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-secondary rounded-lg p-4">
+                  <ShoppingBasket className="w-24 h-24 md:w-32 md:h-32 text-muted-foreground/50" />
+                </div>
+              )}
+            </div>
+            <Card className="shadow-md border-border/50">
+                <CardContent className="p-5 space-y-3">
+                    <h3 className="text-lg font-semibold flex items-center text-foreground/90">
+                        <Package className="w-5 h-5 mr-2.5 text-primary" />
+                        Product Overview
+                    </h3>
+                    {product.brands && (
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground">Brand:</span> {product.brands}
+                      </p>
+                    )}
+                    {product.categories && (
+                      <div className="text-sm text-muted-foreground">
+                        <span className="font-medium text-foreground block mb-1">Categories:</span> 
+                        <div className="flex flex-wrap gap-1.5">
+                        {product.categories.split(',').map(c => c.trim()).filter(c => c).map((cat, idx) => (
+                            <span key={idx} className="text-xs bg-secondary px-2 py-0.5 rounded-full border border-border/70 shadow-xs">
+                                {cat}
+                            </span>
+                        ))}
+                        </div>
+                      </div>
+                    )}
+                     {product.barcode && (
+                      <p className="text-sm text-muted-foreground pt-1">
+                        <span className="font-medium text-foreground">Barcode:</span> {product.barcode}
+                      </p>
+                    )}
+                </CardContent>
+            </Card>
           </div>
 
-          <div className="md:col-span-2 p-4 md:p-0">
-            <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-3 text-primary-foreground bg-gradient-to-r from-primary to-primary/80 p-3 sm:p-4 rounded-md shadow-lg">
-              {product.name}
-            </CardTitle>
+          {/* Right Column: Name, Score, Ingredients */}
+          <div className="md:col-span-8 lg:col-span-8 space-y-8">
+            <div>
+              <CardTitle className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-3 text-foreground leading-tight">
+                {product.name || "Product Details"}
+              </CardTitle>
+              {product.name === "Unknown Product" && product.barcode &&
+                <CardDescription className="text-lg text-muted-foreground">
+                    Displaying information for barcode: {product.barcode}
+                </CardDescription>
+              }
+            </div>
             
-            {product.brands && (
-              <p className="text-lg text-muted-foreground mb-1">
-                <span className="font-semibold text-foreground">Brand:</span> {product.brands}
-              </p>
-            )}
-            {product.categories && (
-              <p className="text-md text-muted-foreground mb-6 flex items-center flex-wrap">
-                <Tag className="w-4 h-4 mr-2 text-primary shrink-0" />
-                <span className="font-semibold text-foreground mr-1">Categories:</span> 
-                {product.categories.split(',').map(c => c.trim()).join(', ')}
-              </p>
-            )}
+            <Separator />
 
-            {product.ingredients && product.name !== 'Unknown Product' ? (
-              <div className="mb-6">
+            {product.ingredients && product.name && product.name !== 'Unknown Product' ? (
+              <div>
                 <HealthScoreLoader productName={product.name} ingredients={product.ingredients} />
               </div>
             ) : (
-              <Alert variant="default" className="mb-6 shadow-sm">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Health Score Information</AlertTitle>
-                <AlertDescription>
-                  {cosmeticSpecificMessage}
-                </AlertDescription>
-              </Alert>
+              <Card className="border-dashed shadow-sm">
+                <CardContent className="p-6">
+                  <div className="flex items-center text-amber-600 dark:text-amber-400">
+                    <ShieldQuestion className="h-7 w-7 mr-3 shrink-0" />
+                    <h3 className="text-xl font-semibold">Health Score Unavailable</h3>
+                  </div>
+                  <p className="text-muted-foreground mt-2.5">
+                    {cosmeticSpecificMessage}
+                  </p>
+                </CardContent>
+              </Card>
             )}
+            
+            <Separator />
 
             {product.ingredients ? (
-              <div className="mb-6">
+              <div>
                 <IngredientsList ingredients={product.ingredients} productType={product.productType} />
               </div>
             ) : (
-                 <Alert variant="default" className="shadow-sm">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Ingredients Information Missing</AlertTitle>
-                    <AlertDescription>
-                        We could not find the ingredients list for this product. Detailed health analysis requires ingredient information.
-                        {isCosmetic && ` For cosmetic items, this data may not yet be in the Open Beauty Facts database for barcode ${product.barcode}.`}
-                    </AlertDescription>
-                </Alert>
+                <Card className="border-dashed shadow-sm">
+                    <CardContent className="p-6">
+                        <div className="flex items-center text-destructive">
+                            <ListChecks className="h-7 w-7 mr-3 shrink-0" />
+                            <h3 className="text-xl font-semibold">Ingredients Information Missing</h3>
+                        </div>
+                        <p className="text-muted-foreground mt-2.5">
+                            We could not find the ingredients list for this product. Detailed health analysis requires this information.
+                            {isCosmetic && ` For cosmetic items, this data may not yet be in the Open Beauty Facts database for barcode ${product.barcode}.`}
+                        </p>
+                    </CardContent>
+                </Card>
             )}
+
+            <Separator />
+            
+            <div className="mt-8 p-5 bg-secondary/50 border border-dashed border-border/70 rounded-lg text-sm text-muted-foreground space-y-2">
+                <div className="flex items-center">
+                    <Microscope className="inline-block h-5 w-5 mr-2.5 text-accent shrink-0" />
+                    <p><span className="font-semibold text-foreground">AI-Powered Analysis:</span> Health scores and ingredient insights are generated by AI.</p>
+                </div>
+                 <div className="flex items-center">
+                    <Info className="inline-block h-5 w-5 mr-2.5 text-accent shrink-0" />
+                    <p><span className="font-semibold text-foreground">Disclaimer:</span> Information is for educational purposes only and not a substitute for professional advice. Always consult with a healthcare or dermatology professional for personal health or skin concerns.</p>
+                </div>
+            </div>
 
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

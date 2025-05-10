@@ -38,7 +38,9 @@ export default function RootLayout({
       >
         <div className="relative flex min-h-screen flex-col">
           <Header />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1 container mx-auto px-4 py-8 sm:py-12"> {/* Added container and padding to main */}
+            {children}
+          </main>
           <Footer />
         </div>
         <Toaster />
