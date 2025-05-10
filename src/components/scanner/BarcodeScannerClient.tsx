@@ -22,6 +22,7 @@ export default function BarcodeScannerClient() {
   const controlsRef = useRef<IScannerControls | null>(null);
   const isMountedRef = useRef(true);
   const streamTracksRef = useRef<MediaStreamTrack[]>([]);
+  const scanProcessedRef = useRef(false); // Ref to track if scan has been processed in current session
 
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null); // null: unknown, true: granted, false: denied/error
   const [isScannerInitializing, setIsScannerInitializing] = useState(true);
@@ -36,6 +37,7 @@ export default function BarcodeScannerClient() {
       if (!isMountedRef.current) return;
       
       setIsScannerInitializing(true);
+      scanProcessedRef.current = false; // Reset scan processed flag for new session
       setIsScanSuccessful(false); // Reset scan success state
       setScanFeedback("Requesting camera permission...");
 
@@ -57,13 +59,10 @@ export default function BarcodeScannerClient() {
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          // The `autoPlay` attribute on the <video> tag will attempt to play it.
-          // We listen for `onloadedmetadata` to confirm readiness.
 
           videoRef.current.onloadedmetadata = async () => {
-            if (!isMountedRef.current || !videoRef.current || isScanSuccessful) {
-              // If component unmounted, video ref gone, or scan already happened, stop.
-               if (videoRef.current?.srcObject) { // Clean up stream if we bail early
+            if (!isMountedRef.current || !videoRef.current || scanProcessedRef.current) {
+               if (videoRef.current?.srcObject) { 
                   const activeStream = videoRef.current.srcObject as MediaStream;
                   activeStream.getTracks().forEach(track => track.stop());
                   videoRef.current.srcObject = null;
@@ -73,22 +72,20 @@ export default function BarcodeScannerClient() {
 
             if (videoRef.current.videoWidth === 0 || videoRef.current.videoHeight === 0) {
               console.warn("Video metadata loaded, but dimensions are zero.");
-              if (isMountedRef.current && !isScanSuccessful) {
+              if (isMountedRef.current && !scanProcessedRef.current) {
                 setScanFeedback("Video stream has an issue (zero dimensions). Try refreshing.");
                 setIsScannerInitializing(false);
-                setHasCameraPermission(true); // Permission was granted, but video is not usable
+                setHasCameraPermission(true); 
               }
               return; 
             }
             
             try {
-              // Ensure video is playing. autoPlay might have handled it. If not, play() explicitly.
               if (videoRef.current.paused) {
                 await videoRef.current.play();
               }
 
-              // Now, video should be playing and have dimensions.
-              if (isMountedRef.current && !isScanSuccessful) {
+              if (isMountedRef.current && !scanProcessedRef.current) {
                 setHasCameraPermission(true);
                 setIsScannerInitializing(false);
                 setScanFeedback("Scanner active. Point camera at a barcode.");
@@ -96,16 +93,18 @@ export default function BarcodeScannerClient() {
                 const controls = await codeReader.current.decodeContinuously(
                   videoRef.current,
                   (result, decodeError) => {
-                    if (!isMountedRef.current || isScanSuccessful) {
-                      // If controls were created, they should be stopped by the main cleanup or success path.
+                    if (!isMountedRef.current || scanProcessedRef.current) {
                       return;
                     }
 
                     if (result) {
+                      scanProcessedRef.current = true; // Mark as processed
+
                       const scannedBarcode = result.getText();
                       setBarcode(scannedBarcode); 
                       setScanFeedback(`Scanned: ${scannedBarcode}`);
-                      setIsScanSuccessful(true);
+                      setIsScanSuccessful(true); // Update UI state
+
                       toast({
                         title: 'Barcode Scanned!',
                         description: `Detected: ${scannedBarcode}`,
@@ -120,15 +119,16 @@ export default function BarcodeScannerClient() {
                       if (videoRef.current && videoRef.current.srcObject) {
                         videoRef.current.srcObject = null;
                       }
-                    } else if (decodeError) {
+                      return; // Exit after successful processing
+                    }
+                    
+                    if (decodeError) { // Only if result is null and not yet processed
                       if (decodeError instanceof NotFoundException) {
-                        if (!isScanSuccessful && videoRef.current?.srcObject) {
+                        if (videoRef.current?.srcObject) { 
                            setScanFeedback("Searching for barcode...");
                         }
                       } else {
-                        // More serious error during decoding, but not necessarily a setup error
                         console.error('Barcode scan error (not NotFoundException):', decodeError);
-                        // Potentially set a scanFeedback message here too
                       }
                     }
                   }
@@ -136,7 +136,7 @@ export default function BarcodeScannerClient() {
                 if (isMountedRef.current) {
                     controlsRef.current = controls;
                 } else {
-                    controls.stop(); // Stop immediately if unmounted during setup
+                    controls.stop(); 
                 }
               }
             } catch (playError) {
@@ -155,7 +155,7 @@ export default function BarcodeScannerClient() {
             if(isMountedRef.current) {
               setScanFeedback("Video element failed to load. Try again or enter manually.");
               setIsScannerInitializing(false);
-              setHasCameraPermission(false); // Indicate camera is not usable
+              setHasCameraPermission(false); 
             }
           };
         }
@@ -192,7 +192,6 @@ export default function BarcodeScannerClient() {
       streamTracksRef.current = [];
 
       if (videoRef.current) {
-        // videoRef.current.pause(); // Not strictly necessary if srcObject is nulled and tracks stopped
         videoRef.current.srcObject = null;
         videoRef.current.onloadedmetadata = null;
         videoRef.current.onerror = null;
@@ -221,14 +220,12 @@ export default function BarcodeScannerClient() {
     router.push(`/product/${trimmedBarcode}`);
   };
 
-  // Determine video visibility:
-  // Show if permission granted, not initializing, not yet successfully scanned, and video srcObject is present.
   const videoActuallyVisible = hasCameraPermission === true && !isScannerInitializing && !isScanSuccessful && videoRef.current?.srcObject;
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="w-full aspect-video bg-muted rounded-lg flex flex-col items-center justify-center border-2 border-dashed border-border relative overflow-hidden shadow-inner">
-        {(isScannerInitializing && hasCameraPermission === null) && ( // Initial permission request phase
+        {(isScannerInitializing && hasCameraPermission === null) && ( 
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/90 z-10 p-4 text-center">
             <ScanEye className="w-16 h-16 text-primary animate-pulse mb-3" />
             <p className="text-muted-foreground">{scanFeedback || 'Requesting camera...'}</p>
@@ -245,7 +242,7 @@ export default function BarcodeScannerClient() {
           aria-label="Camera feed for barcode scanning"
          />
 
-        {(!isScannerInitializing && hasCameraPermission === false) && ( // Permission denied or camera error
+        {(!isScannerInitializing && hasCameraPermission === false) && ( 
            <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
             <CameraOff className="w-16 h-16 text-destructive mb-3" />
             <p className="text-destructive font-semibold">Camera Unavailable</p>
@@ -265,7 +262,7 @@ export default function BarcodeScannerClient() {
             </div>
         )}
         
-        {(!isScannerInitializing && hasCameraPermission === true && isScanSuccessful) && ( // Scan was successful
+        {isScanSuccessful && ( 
             <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-background/95">
                 <CheckCircle className="w-16 h-16 text-green-500 mb-3" />
                 <p className="text-primary font-semibold">Scan Successful!</p>
@@ -295,15 +292,10 @@ export default function BarcodeScannerClient() {
           onChange={(e) => {
             setBarcode(e.target.value);
             if (error) setError(null);
-            // If user types, it implies they might want to override the scan or current state.
-            // We don't need to restart scanning if they type manually after a successful scan.
-            // If they clear the input after a successful scan, isScanSuccessful should ideally reset
-            // if we wanted to allow re-scanning, but current logic is fine.
           }}
           placeholder="e.g., 1234567890123"
           className="text-lg py-3 h-auto"
           aria-label="Enter or edit barcode"
-          // Input is typically enabled unless scanner is in its very initial permission request phase.
           disabled={isScannerInitializing && hasCameraPermission === null} 
         />
       </div>
@@ -320,8 +312,6 @@ export default function BarcodeScannerClient() {
         type="submit" 
         className="w-full text-lg py-3 h-auto rounded-md" 
         size="lg"
-        // Button should be enabled if there's a barcode, regardless of scanner state,
-        // unless in absolute initial state.
         disabled={!barcode.trim() || (isScannerInitializing && hasCameraPermission === null)}
       >
         <Search className="mr-2 h-5 w-5" />
