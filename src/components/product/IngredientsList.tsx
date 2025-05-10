@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -6,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Leaf, MinusCircle, AlertTriangle, ShieldAlert, HelpCircle, Sparkles, AlertCircle } from 'lucide-react';
+import { Leaf, MinusCircle, AlertTriangle, ShieldAlert, HelpCircle, Sparkles, AlertCircle, Info } from 'lucide-react';
 import { analyzeIngredients, type AnalyzeIngredientsInput, type AnalyzeIngredientsOutput } from '@/ai/flows/analyze-ingredients-flow';
 import type { AnalyzedIngredient } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -18,7 +17,7 @@ interface IngredientsListProps {
 
 // Helper function to strip HTML tags
 function stripHtml(html: string): string {
-  if (typeof window === 'undefined' || typeof DOMParser === 'undefined') {
+  if (typeof window === 'undefined' || typeof document === 'undefined' || typeof DOMParser === 'undefined') {
     // Fallback for server-side rendering or environments where DOMParser is not available
     // This regex is a basic attempt and might not cover all edge cases.
     return html.replace(/<[^>]*>?/gm, '');
@@ -31,6 +30,7 @@ function stripHtml(html: string): string {
     return html.replace(/<[^>]*>?/gm, '');
   }
 }
+
 
 function SkeletonBadge() {
   return <Skeleton className="h-8 w-24 rounded-full bg-muted/50" />;
@@ -123,82 +123,70 @@ export default function IngredientsList({ ingredients, productType = 'unknown' }
   }
 
   const getIngredientVisuals = (category: AnalyzedIngredient['category']): { 
-    variant: 'default' | 'secondary' | 'destructive' | 'outline', 
     icon: React.ReactNode, 
-    colorClass: string, 
-    badgeClass?: string,
-    textColorClass?: string,
-    borderColorClass?: string,
-    tooltipHeaderClass?: string,
+    badgeClass: string,
+    textColorClass: string,
+    borderColorClass: string,
+    tooltipHeaderClass: string,
   } => {
     switch (category) {
       case 'beneficial':
         return { 
-            variant: 'default', 
-            icon: <Leaf className="h-3.5 w-3.5" />, 
-            colorClass: 'text-green-600 dark:text-green-400', 
-            badgeClass: 'bg-green-500/10 hover:bg-green-500/20',
+            icon: <Leaf />, 
+            badgeClass: 'bg-green-500/10 hover:bg-green-500/20 border-green-500/40 text-green-700 dark:text-green-300 dark:border-green-500/60 dark:bg-green-500/15 dark:hover:bg-green-500/25',
             textColorClass: 'text-green-700 dark:text-green-300',
-            borderColorClass: 'border-green-500/40',
+            borderColorClass: 'border-green-500/40 dark:border-green-500/60',
             tooltipHeaderClass: 'text-green-600 dark:text-green-400'
         };
       case 'neutral':
         return { 
-            variant: 'secondary', 
-            icon: <MinusCircle className="h-3.5 w-3.5" />, 
-            colorClass: 'text-slate-600 dark:text-slate-400',
-            badgeClass: 'bg-slate-500/10 hover:bg-slate-500/20',
+            icon: <MinusCircle />, 
+            badgeClass: 'bg-slate-500/10 hover:bg-slate-500/20 border-slate-500/40 text-slate-700 dark:text-slate-300 dark:border-slate-500/50 dark:bg-slate-500/15 dark:hover:bg-slate-500/25',
             textColorClass: 'text-slate-700 dark:text-slate-300',
-            borderColorClass: 'border-slate-500/40',
+            borderColorClass: 'border-slate-500/40 dark:border-slate-500/50',
             tooltipHeaderClass: 'text-slate-600 dark:text-slate-400'
         };
       case 'caution':
         return { 
-            variant: 'outline', 
-            icon: <AlertTriangle className="h-3.5 w-3.5" />, 
-            colorClass: 'text-yellow-600 dark:text-yellow-400',
-            badgeClass: 'bg-yellow-500/10 hover:bg-yellow-500/20',
-            textColorClass: 'text-yellow-700 dark:text-yellow-300',
-            borderColorClass: 'border-yellow-500/40',
+            icon: <AlertTriangle />, 
+            badgeClass: 'bg-yellow-500/10 hover:bg-yellow-500/20 border-yellow-500/40 text-yellow-700 dark:text-yellow-400 dark:border-yellow-500/60 dark:bg-yellow-500/15 dark:hover:bg-yellow-500/25',
+            textColorClass: 'text-yellow-700 dark:text-yellow-400',
+            borderColorClass: 'border-yellow-500/40 dark:border-yellow-500/60',
             tooltipHeaderClass: 'text-yellow-600 dark:text-yellow-400'
         };
       case 'avoid':
         return { 
-            variant: 'destructive', 
-            icon: <ShieldAlert className="h-3.5 w-3.5" />, 
-            colorClass: 'text-red-600 dark:text-red-400',
-            badgeClass: 'bg-red-500/10 hover:bg-red-500/20',
+            icon: <ShieldAlert />, 
+            badgeClass: 'bg-red-500/10 hover:bg-red-500/20 border-red-500/40 text-red-700 dark:text-red-300 dark:border-red-500/60 dark:bg-red-500/15 dark:hover:bg-red-500/25',
             textColorClass: 'text-red-700 dark:text-red-300',
-            borderColorClass: 'border-red-500/40',
+            borderColorClass: 'border-red-500/40 dark:border-red-500/60',
             tooltipHeaderClass: 'text-red-600 dark:text-red-400'
         };
       case 'unknown':
       default:
         return { 
-            variant: 'outline', 
-            icon: <HelpCircle className="h-3.5 w-3.5" />, 
-            colorClass: 'text-gray-500 dark:text-gray-400',
-            badgeClass: 'bg-gray-500/10 hover:bg-gray-500/20',
-            textColorClass: 'text-gray-700 dark:text-gray-300',
-            borderColorClass: 'border-gray-500/30',
+            icon: <HelpCircle />, 
+            badgeClass: 'bg-gray-500/10 hover:bg-gray-500/20 border-gray-500/30 text-gray-700 dark:text-gray-400 dark:border-gray-500/50 dark:bg-gray-500/15 dark:hover:bg-gray-500/25',
+            textColorClass: 'text-gray-700 dark:text-gray-400',
+            borderColorClass: 'border-gray-500/30 dark:border-gray-500/50',
             tooltipHeaderClass: 'text-gray-500 dark:text-gray-400'
         };
     }
   };
   
   return (
-    <TooltipProvider delayDuration={100}>
+    <TooltipProvider delayDuration={0}>
       <Card className="bg-card shadow-xl border border-border/60 rounded-xl">
         <CardHeader className="pb-4 pt-6 px-5 sm:px-6">
           <CardTitle className="text-xl md:text-2xl font-semibold flex items-center text-foreground">
-            <Sparkles className="w-6 h-6 mr-3 text-primary" />
+            <Sparkles className="w-6 h-6 mr-3 text-primary animate-pulse" />
             Ingredient Analysis
           </CardTitle>
         </CardHeader>
         <CardContent className="p-5 sm:p-6">
           {analysisError && (
-            <div className="mb-4 p-3.5 rounded-lg bg-destructive/10 text-destructive text-sm flex items-center shadow border border-destructive/30">
-              <AlertCircle className="h-5 w-5 mr-2.5 shrink-0"/> {analysisError}
+            <div className="mb-4 p-3.5 rounded-lg bg-destructive/10 text-destructive-foreground text-sm flex items-center shadow border border-destructive/30">
+              <AlertCircle className="h-5 w-5 mr-2.5 shrink-0 text-destructive"/> {analysisError}
             </div>
           )}
           <div className="flex flex-wrap gap-2.5">
@@ -212,21 +200,25 @@ export default function IngredientsList({ ingredients, productType = 'unknown' }
                 className: cn('h-3.5 w-3.5 mr-1.5 shrink-0', visuals.textColorClass)
               });
 
-              const badgeContent = (
-                <Badge 
-                  key={`${analyzedIng.ingredientName}-${index}`}
-                  variant={'outline'} // Use outline for all, custom styling via classes
-                  className={cn(
-                    `text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-1.5 shadow-sm rounded-full flex items-center transition-all hover:shadow-md border`,
-                    visuals.badgeClass,
-                    visuals.textColorClass,
-                    visuals.borderColorClass
-                  )}
-                >
+              const badgeInnerContent = (
+                <>
                   {badgeIcon}
-                  <span className="truncate max-w-[150px] sm:max-w-[200px]">{analyzedIng.ingredientName}</span>
-                </Badge>
+                  <span className={cn("truncate", 
+                    "max-w-[100px] xs:max-w-[120px] sm:max-w-[150px] md:max-w-[120px] lg:max-w-[150px] xl:max-w-[180px]" // Adjusted truncate classes
+                  )}>
+                    {analyzedIng.ingredientName}
+                  </span>
+                </>
               );
+
+              const commonBadgeProps = {
+                key: `${analyzedIng.ingredientName}-${index}`,
+                variant: 'outline' as const,
+                className: cn(
+                  `text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-1 sm:py-1.5 shadow-sm rounded-full flex items-center transition-all hover:shadow-md border cursor-pointer focus:ring-2 focus:ring-ring focus:ring-offset-1`,
+                  visuals.badgeClass
+                ),
+              };
 
               if (analyzedIng.reasoning && (analyzedIng.category === 'caution' || analyzedIng.category === 'avoid' || analyzedIng.category === 'beneficial' || analyzedIng.category === 'unknown')) {
                 const tooltipIcon = React.cloneElement(visuals.icon as React.ReactElement, { 
@@ -234,20 +226,44 @@ export default function IngredientsList({ ingredients, productType = 'unknown' }
                 });
                 return (
                   <Tooltip key={`tooltip-${analyzedIng.ingredientName}-${index}`}>
-                    <TooltipTrigger asChild>{badgeContent}</TooltipTrigger>
-                    <TooltipContent className="max-w-xs text-sm bg-popover text-popover-foreground p-3 rounded-lg shadow-xl border border-border" side="top">
-                      <p className={cn("font-bold capitalize text-base mb-1.5 flex items-center", visuals.tooltipHeaderClass)}>
+                    <TooltipTrigger asChild>
+                      <Badge {...commonBadgeProps} tabIndex={0}>
+                        {badgeInnerContent}
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent 
+                        className="max-w-xs text-sm bg-popover text-popover-foreground p-3 rounded-lg shadow-xl border border-border/70" 
+                        side="top" 
+                        align="center"
+                    >
+                      <div className={cn("font-semibold capitalize text-base mb-1.5 flex items-center", visuals.tooltipHeaderClass)}>
                         {tooltipIcon}
                         {analyzedIng.category}
-                      </p>
+                      </div>
                       <p className="text-xs text-muted-foreground">{analyzedIng.reasoning}</p>
+                      {analyzedIng.ingredientName.length > 25 && // Show full name in tooltip if truncated
+                        <p className="text-xs text-muted-foreground mt-1 italic">Full: {analyzedIng.ingredientName}</p>
+                      }
                     </TooltipContent>
                   </Tooltip>
                 );
               }
-              return badgeContent;
+              return (
+                <Badge {...commonBadgeProps}>
+                  {badgeInnerContent}
+                </Badge>
+              );
             })}
+            {!isLoadingAnalysis && analyzedIngredients?.length === 0 && individualIngredients.length > 0 && (
+                <p className="text-sm text-muted-foreground w-full">No specific analysis available for these ingredients from the AI.</p>
+            )}
           </div>
+           {!isLoadingAnalysis && !analysisError && (
+            <div className="mt-6 p-4 bg-secondary/50 border border-dashed border-border rounded-lg text-xs text-muted-foreground">
+              <Info className="inline-block h-4 w-4 mr-1.5 text-accent align-text-bottom" />
+              Ingredient analysis is AI-generated and for informational purposes. Classifications are based on general knowledge and typical product contexts. For specific health concerns or allergies, consult a professional.
+            </div>
+          )}
         </CardContent>
       </Card>
     </TooltipProvider>
