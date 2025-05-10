@@ -10,7 +10,7 @@ export default function Header() {
         <Link href="/" className="mr-6 flex items-center space-x-2 group">
           <Leaf className="h-7 w-7 text-primary group-hover:animate-pulse" />
           <Sparkles className="h-7 w-7 text-accent group-hover:animate-pulse delay-150" />
-          <span className="font-bold sm:inline-block text-xl text-foreground group-hover:text-primary transition-colors">
+          <span className="font-bold hidden sm:inline-block text-xl text-foreground group-hover:text-primary transition-colors">
             Health & Beauty Scanner
           </span>
         </Link>
@@ -46,3 +46,4 @@ export default function Header() {
     </header>
   );
 }
+
