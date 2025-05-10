@@ -13,6 +13,16 @@ interface ProductDetailsDisplayProps {
 }
 
 export default function ProductDetailsDisplay({ product }: ProductDetailsDisplayProps) {
+  const isCosmetic = product.productType === 'cosmetic';
+  const noScoreReason = 
+    product.name === 'Unknown Product' ? 'the product name is missing or invalid.' :
+    !product.ingredients ? 'ingredient information is missing.' :
+    'ingredient information or product name is missing or invalid.';
+
+  const cosmeticSpecificMessage = isCosmetic 
+    ? `Health score for this cosmetic product cannot be generated. This often means detailed ingredient information or a specific product name is not available in the Open Beauty Facts database for barcode ${product.barcode}.`
+    : `Health score cannot be generated because ${noScoreReason}`;
+
   return (
     <Card className="overflow-hidden shadow-xl rounded-lg">
       <CardContent className="p-0 md:p-6 lg:p-8">
@@ -35,8 +45,8 @@ export default function ProductDetailsDisplay({ product }: ProductDetailsDisplay
             )}
           </div>
 
-          <div className="md:col-span-2 p-6 md:p-0">
-            <CardTitle className="text-3xl md:text-4xl font-bold tracking-tight mb-3 text-primary-foreground bg-gradient-to-r from-primary to-primary/80 p-4 rounded-md shadow-lg">
+          <div className="md:col-span-2 p-4 md:p-0">
+            <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-3 text-primary-foreground bg-gradient-to-r from-primary to-primary/80 p-3 sm:p-4 rounded-md shadow-lg">
               {product.name}
             </CardTitle>
             
@@ -62,7 +72,7 @@ export default function ProductDetailsDisplay({ product }: ProductDetailsDisplay
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Health Score Information</AlertTitle>
                 <AlertDescription>
-                  Health score cannot be generated because ingredient information or product name is missing or invalid.
+                  {cosmeticSpecificMessage}
                 </AlertDescription>
               </Alert>
             )}
@@ -77,6 +87,7 @@ export default function ProductDetailsDisplay({ product }: ProductDetailsDisplay
                     <AlertTitle>Ingredients Information Missing</AlertTitle>
                     <AlertDescription>
                         We could not find the ingredients list for this product. Detailed health analysis requires ingredient information.
+                        {isCosmetic && ` For cosmetic items, this data may not yet be in the Open Beauty Facts database for barcode ${product.barcode}.`}
                     </AlertDescription>
                 </Alert>
             )}
