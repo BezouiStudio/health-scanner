@@ -46,7 +46,7 @@ const generateAlternativesPrompt = ai.definePrompt({
   output: {schema: GenerateAlternativesOutputSchema},
   prompt: `You are a helpful AI assistant that suggests alternative products based on health and safety considerations.
 The user has a product named "{{productName}}" (Type: {{productType}}) which has a health score of {{currentHealthScore}} out of 10 (where 1 is poor, 10 is excellent).
-The user is looking for alternatives, primarily because of: {{reasonForAlternative | default('its low health score')}}.
+The user is looking for alternatives, primarily because of: {{#if reasonForAlternative}}{{{reasonForAlternative}}}{{else}}its low health score{{/if}}.
 Product Categories: {{#if productCategories}}"{{productCategories}}"{{else}}Not specified{{/if}}.
 {{#if productIngredients}}
 Product Ingredients: {{{productIngredients}}}
@@ -100,3 +100,4 @@ const generateAlternativesFlow = ai.defineFlow(
     return output;
   }
 );
+
